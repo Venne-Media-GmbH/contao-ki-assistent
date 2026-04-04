@@ -1,9 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>KI Assistent</title>
-    <style>
+<style>
         .ki-card{background:var(--form-bg,#fff);border:1px solid var(--border,#e5e7eb);border-radius:12px;padding:24px;margin-bottom:20px}
         .ki-card h3{margin:0 0 4px;font-size:15px;font-weight:700;color:var(--text,#111)}
         .ki-card p.desc{margin:0 0 16px;font-size:13px;color:var(--text-light,#6b7280)}
@@ -40,8 +35,7 @@
         .ki-preview-bubble svg{width:22px;height:22px}
         .ki-preview-header{display:inline-flex;align-items:center;padding:10px 16px;border-radius:10px;color:#fff;font-weight:700;font-size:14px;margin-top:12px}
     </style>
-</head>
-<body>
+
     <div class="tl_listing_container">
         <div class="tl_formbody_edit">
             <div class="tl_tbox">
@@ -177,5 +171,3 @@
     }
     updatePreview();
     </script>
-</body>
-</html>
