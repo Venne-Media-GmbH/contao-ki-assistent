@@ -1,0 +1,9 @@
+<?php $this->extend('block_unsearchable'); ?>
+
+<?php $this->block('content'); ?>
+  <?php if (!empty($this->error)): ?>
+    <p class="ki-widget-error"><?= $this->error ?></p>
+  <?php elseif (!empty($this->scriptUrl)): ?>
+    <script src="<?= \Contao\StringUtil::specialchars($this->scriptUrl) ?>" async></script>
+  <?php endif; ?>
+<?php $this->endblock(); ?>
