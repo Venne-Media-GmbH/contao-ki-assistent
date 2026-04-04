@@ -185,10 +185,10 @@ function addChips(qs){
 
 function md(t){
   t=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-  t=t.replace(/\*(.+?)\*/g,'<em>$1</em>');
-  t=t.replace(/`([^`]+)`/g,'<code>$1</code>');
-  t=t.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  t=t.replace(/\*\*(.+?)\*\*/g,'<strong>\$1</strong>');
+  t=t.replace(/\*(.+?)\*/g,'<em>\$1</em>');
+  t=t.replace(/`([^`]+)`/g,'<code>\$1</code>');
+  t=t.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="\$2" target="_blank" rel="noopener">\$1</a>');
   t=t.replace(/\n/g,'<br>');return t}
 
 function loadConfig(){
