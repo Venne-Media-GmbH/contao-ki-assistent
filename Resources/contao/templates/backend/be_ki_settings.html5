@@ -133,6 +133,14 @@
                                 placeholder="Hallo! Wie kann ich Ihnen helfen?">
                         </div>
 
+                        <div class="ki-field">
+                            <label for="ki_custom_css">Eigene CSS-Anpassungen (Button)</label>
+                            <input type="text" name="ki_custom_css" id="ki_custom_css" class="ki-input ki-input-mono" style="max-width:100%"
+                                value="<?= \Contao\StringUtil::specialchars($this->kiCustomCss ?? '') ?>"
+                                placeholder="z.B. bottom:80px;right:40px">
+                            <p class="help">Eigene CSS-Eigenschaften für den Chat-Button, z.B. <code>bottom:80px;right:40px</code> um die Position anzupassen.</p>
+                        </div>
+
                         <!-- Live Preview -->
                         <div class="ki-preview" id="ki_preview">
                             <p style="font-size:12px;font-weight:600;color:#6b7280;margin:0 0 12px">Vorschau</p>

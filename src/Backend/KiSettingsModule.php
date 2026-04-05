@@ -23,6 +23,7 @@ class KiSettingsModule extends BackendModule
         'title' => 'KI Assistent',
         'welcomeMessage' => 'Hallo! Wie kann ich Ihnen helfen?',
         'bubbleIcon' => 'chat',
+        'customCss' => '',
     ];
 
     public function __construct()
@@ -81,6 +82,10 @@ class KiSettingsModule extends BackendModule
                 $bubbleIcon = 'chat';
             }
 
+            $customCss = trim((string) Input::post('ki_custom_css'));
+            // Strip dangerous characters to prevent injection
+            $customCss = str_replace(['{', '}', '<', '>', '"'], '', $customCss);
+
             // Save all settings
             $settings = [
                 'enabled' => $enabled,
@@ -90,14 +95,26 @@ class KiSettingsModule extends BackendModule
                 'title' => $title,
                 'welcomeMessage' => $welcomeMessage,
                 'bubbleIcon' => $bubbleIcon,
+                'customCss' => $customCss,
             ];
 
             try {
                 Config::persist('kiAssistentApiKey', $apiKey);
                 Config::persist('kiAssistentSettings', json_encode($settings, JSON_THROW_ON_ERROR));
 
+                // Auto-register site at portal when API key is set
+                if ($apiKey !== '') {
+                    $registerResult = $this->registerSiteAtPortal($apiKey);
+                }
+
                 $statusText = $enabled ? 'aktiviert' : 'deaktiviert';
-                $this->Template->message = '<div class="tl_confirm">Einstellungen gespeichert! Widget ist ' . $statusText . '.</div>';
+                $message = 'Einstellungen gespeichert! Widget ist ' . $statusText . '.';
+                if (isset($registerResult) && $registerResult === true) {
+                    $message .= ' Seite wurde im Portal registriert.';
+                } elseif (isset($registerResult) && is_string($registerResult)) {
+                    $message .= ' <span style="color:#d97706">Portal-Registrierung: ' . htmlspecialchars($registerResult, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</span>';
+                }
+                $this->Template->message = '<div class="tl_confirm">' . $message . '</div>';
             } catch (\Exception $e) {
                 $this->Template->message = '<div class="tl_error">Fehler beim Speichern: '
                     . htmlspecialchars($e->getMessage(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')
@@ -111,6 +128,56 @@ class KiSettingsModule extends BackendModule
             define('REQUEST_TOKEN', System::getContainer()->get('contao.csrf.token_manager')->getDefaultTokenValue());
         }
         $this->Template->requestToken = REQUEST_TOKEN;
+    }
+
+    /**
+     * @return true|string true on success, error message on failure
+     */
+    private function registerSiteAtPortal(string $apiKey): true|string
+    {
+        try {
+            $siteUrl = \Contao\Environment::get('url');
+            if (empty($siteUrl)) {
+                $siteUrl = \Contao\Environment::get('base');
+            }
+            if (empty($siteUrl)) {
+                return 'Seiten-URL konnte nicht ermittelt werden.';
+            }
+
+            $payload = json_encode(['siteUrl' => $siteUrl], JSON_THROW_ON_ERROR);
+            $endpoint = 'https://portal.venne-software.de/contao-agent/api/ki/' . $apiKey . '/register-site';
+
+            $ch = curl_init($endpoint);
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $payload,
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_CONNECTTIMEOUT => 5,
+            ]);
+
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+
+            if ($error) {
+                return 'Verbindungsfehler: ' . $error;
+            }
+
+            if ($httpCode === 404) {
+                return 'API Key nicht gefunden im Portal.';
+            }
+
+            if ($httpCode !== 200) {
+                return 'Portal antwortet mit HTTP ' . $httpCode;
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            return $e->getMessage();
+        }
     }
 
     private function loadSettings(): array
@@ -145,5 +212,6 @@ class KiSettingsModule extends BackendModule
         $this->Template->kiTitle = $settings['title'];
         $this->Template->kiWelcomeMessage = $settings['welcomeMessage'];
         $this->Template->kiBubbleIcon = $settings['bubbleIcon'];
+        $this->Template->kiCustomCss = $settings['customCss'] ?? '';
     }
 }

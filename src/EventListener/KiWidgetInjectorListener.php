@@ -110,20 +110,22 @@ class KiWidgetInjectorListener
         $posLeft = $isLeft ? '24px' : 'auto';
         $panelRight = $isLeft ? 'auto' : '24px';
         $panelLeft = $isLeft ? '24px' : 'auto';
-        $userAlign = 'flex-end';
-        $botAlign = 'flex-start';
 
         $iconSvg = self::ICONS[$bubbleIcon] ?? self::ICONS['chat'];
 
-        return <<<HTML
+        // customCss from settings
+        $customCss = $this->getCustomCss();
+
+        // Use Nowdoc to avoid PHP escape issues in JS code
+        $template = <<<'WIDGET'
 <!-- Contao KI Assistent Widget -->
 <style>
-#ca-ki-bubble{position:fixed;bottom:24px;right:{$posRight};left:{$posLeft};z-index:99999;width:56px;height:56px;border-radius:50%;background:{$colorCss};color:#fff;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s}
+#ca-ki-bubble{position:fixed;bottom:24px;right:__POS_RIGHT__;left:__POS_LEFT__;z-index:99999;width:56px;height:56px;border-radius:50%;background:__COLOR__;color:#fff;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s;__CUSTOM_CSS__}
 #ca-ki-bubble:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(0,0,0,.25)}
 #ca-ki-bubble svg{width:26px;height:26px}
-#ca-ki-panel{position:fixed;bottom:92px;right:{$panelRight};left:{$panelLeft};z-index:99999;width:400px;max-width:calc(100vw - 32px);height:600px;max-height:calc(100vh - 120px);background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.2);display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+#ca-ki-panel{position:fixed;bottom:92px;right:__PANEL_RIGHT__;left:__PANEL_LEFT__;z-index:99999;width:400px;max-width:calc(100vw - 32px);height:600px;max-height:calc(100vh - 120px);background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.2);display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
 #ca-ki-panel.open{display:flex}
-#ca-ki-header{background:linear-gradient(145deg,{$colorCss},#1f2937);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#ca-ki-header{background:linear-gradient(145deg,__COLOR__,#1f2937);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 #ca-ki-header h3{margin:0;font-size:15px;font-weight:700}
 #ca-ki-close{background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;padding:4px;border-radius:6px;display:flex}
 #ca-ki-close:hover{color:#fff;background:rgba(255,255,255,.15)}
@@ -131,26 +133,26 @@ class KiWidgetInjectorListener
 .ca-ki-msg{max-width:85%;padding:10px 14px;border-radius:12px;font-size:14px;line-height:1.55;word-wrap:break-word}
 .ca-ki-msg a{color:inherit;text-decoration:underline}
 .ca-ki-msg code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px;font-size:12px}
-.ca-ki-user{align-self:{$userAlign};background:{$colorCss};color:#fff;border-bottom-right-radius:4px}
-.ca-ki-bot{align-self:{$botAlign};background:#f3f4f6;color:#111;border-bottom-left-radius:4px}
+.ca-ki-user{align-self:flex-end;background:__COLOR__;color:#fff;border-bottom-right-radius:4px}
+.ca-ki-bot{align-self:flex-start;background:#f3f4f6;color:#111;border-bottom-left-radius:4px}
 .ca-ki-typing{font-style:italic;color:#888}
 .ca-ki-chip{display:inline-block;padding:6px 14px;background:#f0fdf4;color:#059669;border:1px solid #bbf7d0;border-radius:20px;font-size:12px;cursor:pointer;margin:2px 4px 2px 0;transition:background .15s}
 .ca-ki-chip:hover{background:#dcfce7}
 .ca-ki-err{color:#dc2626;font-size:13px}
 #ca-ki-input-area{border-top:1px solid #e5e7eb;padding:12px 16px;display:flex;gap:8px;flex-shrink:0;background:#fafafa}
 #ca-ki-input{flex:1;border:1px solid #d1d5db;border-radius:10px;padding:10px 14px;font-size:14px;resize:none;max-height:80px;line-height:1.4;font-family:inherit;outline:none;transition:border-color .15s}
-#ca-ki-input:focus{border-color:{$colorCss};box-shadow:0 0 0 3px {$colorCss}20}
-#ca-ki-send{width:40px;height:40px;border-radius:10px;background:{$colorCss};color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
+#ca-ki-input:focus{border-color:__COLOR__;box-shadow:0 0 0 3px __COLOR__20}
+#ca-ki-send{width:40px;height:40px;border-radius:10px;background:__COLOR__;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s}
 #ca-ki-send:hover{opacity:.85}
 #ca-ki-send:disabled{background:#d1d5db;cursor:not-allowed;opacity:1}
 @media(max-width:640px){#ca-ki-panel{bottom:0;right:0;left:0;width:100vw;max-width:100vw;height:100vh;max-height:100vh;border-radius:0}#ca-ki-bubble{bottom:16px}}
 </style>
 <div id="ca-ki-bubble" title="Chat öffnen">
-  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">{$iconSvg}</svg>
+  <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">__ICON_SVG__</svg>
 </div>
 <div id="ca-ki-panel">
   <div id="ca-ki-header">
-    <h3>{$titleJs}</h3>
+    <h3>__TITLE__</h3>
     <button id="ca-ki-close" title="Schließen"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
   </div>
   <div id="ca-ki-msgs"></div>
@@ -161,7 +163,7 @@ class KiWidgetInjectorListener
 </div>
 <script>
 (function(){
-var API='{$apiUrlJs}',KEY='{$apiKeyJs}';
+var API='__API_URL__',KEY='__API_KEY__';
 var SK='ca_ki_s_'+KEY,VK='ca_ki_v_'+KEY;
 var st=localStorage.getItem(SK)||null;
 var vid=localStorage.getItem(VK);
@@ -169,7 +171,7 @@ if(!vid){vid='v_'+Math.random().toString(36).substr(2)+Date.now().toString(36);l
 var bubble=document.getElementById('ca-ki-bubble'),panel=document.getElementById('ca-ki-panel'),msgs=document.getElementById('ca-ki-msgs'),input=document.getElementById('ca-ki-input'),sendBtn=document.getElementById('ca-ki-send'),closeBtn=document.getElementById('ca-ki-close');
 var isOpen=false,welcomed=false,sending=false,curBot=null,curTxt='';
 
-function toggle(){isOpen=!isOpen;panel.classList.toggle('open',isOpen);if(isOpen&&!welcomed){welcomed=true;addMsg('bot','{$welcomeJs}');loadConfig()}}
+function toggle(){isOpen=!isOpen;panel.classList.toggle('open',isOpen);if(isOpen&&!welcomed){welcomed=true;addMsg('bot','__WELCOME__');loadConfig()}}
 bubble.onclick=toggle;
 closeBtn.onclick=function(){isOpen=false;panel.classList.remove('open')};
 
@@ -184,11 +186,11 @@ function addChips(qs){
   msgs.appendChild(w);msgs.scrollTop=msgs.scrollHeight}
 
 function md(t){
-  t=t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  t=t.replace(/\*\*(.+?)\*\*/g,'<strong>\$1</strong>');
-  t=t.replace(/\*(.+?)\*/g,'<em>\$1</em>');
-  t=t.replace(/`([^`]+)`/g,'<code>\$1</code>');
-  t=t.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="\$2" target="_blank" rel="noopener">\$1</a>');
+  t=t.replace(/&/g,'&amp;').replace(/\x3c/g,'&lt;').replace(/>/g,'&gt;');
+  t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  t=t.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  t=t.replace(/`([^`]+)`/g,'<code>$1</code>');
+  t=t.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
   t=t.replace(/\n/g,'<br>');return t}
 
 function loadConfig(){
@@ -200,14 +202,14 @@ function send(text){
   if(sending)return;if(!text)text=input.value.trim();if(!text)return;
   input.value='';input.style.height='auto';sending=true;sendBtn.disabled=true;
   addMsg('user',text);
-  curBot=addMsg('bot','');curBot.classList.add('ca-ki-typing');curBot.innerHTML='<em>Denke nach...</em>';curTxt='';
+  curBot=addMsg('bot','');curBot.classList.add('ca-ki-typing');curBot.innerHTML='\x3cem>Denke nach...\x3c/em>';curTxt='';
 
   fetch(API+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({message:text,session_token:st,visitor_id:vid})
   }).then(function(r){
     if(!r.ok){
-      if(r.status===429){curBot.innerHTML='<span class="ca-ki-err">Zu viele Anfragen. Bitte warten.</span>'}
-      else{curBot.innerHTML='<span class="ca-ki-err">Fehler ('+r.status+')</span>'}
+      if(r.status===429){curBot.innerHTML='\x3cspan class="ca-ki-err">Zu viele Anfragen. Bitte warten.\x3c/span>'}
+      else{curBot.innerHTML='\x3cspan class="ca-ki-err">Fehler ('+r.status+')\x3c/span>'}
       sending=false;sendBtn.disabled=false;return}
     var reader=r.body.getReader(),dec=new TextDecoder(),buf='';
     curBot.classList.remove('ca-ki-typing');curBot.innerHTML='';
@@ -223,19 +225,54 @@ function send(text){
             if(d.type==='token'&&d.content){curTxt+=d.content;curBot.innerHTML=md(curTxt);curBot.style.background='#f3f4f6';msgs.scrollTop=msgs.scrollHeight}
             if(d.type==='start'&&d.session_token){st=d.session_token;localStorage.setItem(SK,st)}
             if(d.type==='done'){if(d.session_token){st=d.session_token;localStorage.setItem(SK,st)}sending=false;sendBtn.disabled=false}
-            if(d.error==='limit_reached'){curBot.innerHTML='<span class="ca-ki-err">Das monatliche Limit wurde erreicht.</span>';sending=false;sendBtn.disabled=false}
+            if(d.error==='limit_reached'){curBot.innerHTML='\x3cspan class="ca-ki-err">Das monatliche Limit wurde erreicht.\x3c/span>';sending=false;sendBtn.disabled=false}
           }catch(e){}});
         read()}).catch(function(){
-          if(!curTxt)curBot.innerHTML='<span class="ca-ki-err">Verbindungsfehler.</span>';
+          if(!curTxt)curBot.innerHTML='\x3cspan class="ca-ki-err">Verbindungsfehler.\x3c/span>';
           sending=false;sendBtn.disabled=false})}
     read()
-  }).catch(function(){curBot.innerHTML='<span class="ca-ki-err">Verbindungsfehler. Bitte versuchen Sie es erneut.</span>';sending=false;sendBtn.disabled=false})}
+  }).catch(function(){curBot.innerHTML='\x3cspan class="ca-ki-err">Verbindungsfehler. Bitte versuchen Sie es erneut.\x3c/span>';sending=false;sendBtn.disabled=false})}
 
 sendBtn.onclick=function(){send()};
 input.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
 input.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,80)+'px'});
 })();
 </script>
-HTML;
+WIDGET;
+
+        return str_replace(
+            ['__API_URL__', '__API_KEY__', '__COLOR__', '__POS_RIGHT__', '__POS_LEFT__', '__PANEL_RIGHT__', '__PANEL_LEFT__', '__ICON_SVG__', '__TITLE__', '__WELCOME__', '__CUSTOM_CSS__'],
+            [$apiUrlJs, $apiKeyJs, $colorCss, $posRight, $posLeft, $panelRight, $panelLeft, $iconSvg, $titleJs, $welcomeJs, $customCss],
+            $template,
+        );
+    }
+
+    private function getCustomCss(): string
+    {
+        try {
+            $settingsJson = Config::get('kiAssistentSettings');
+        } catch (\Throwable) {
+            return '';
+        }
+
+        if (empty($settingsJson)) {
+            return '';
+        }
+
+        try {
+            $settings = json_decode((string) $settingsJson, true, 4, JSON_THROW_ON_ERROR);
+        } catch (\JsonException) {
+            return '';
+        }
+
+        $css = '';
+        $customCss = trim($settings['customCss'] ?? '');
+        if ($customCss !== '') {
+            // Sanitize: only allow safe CSS properties, strip anything dangerous
+            $customCss = str_replace(['{', '}', '<', '>', '"', "'"], '', $customCss);
+            $css = $customCss;
+        }
+
+        return $css;
     }
 }
