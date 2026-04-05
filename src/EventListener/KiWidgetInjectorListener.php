@@ -122,11 +122,11 @@ class KiWidgetInjectorListener
 <style>
 @keyframes ca-ki-in{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes ca-ki-dots{0%,80%,100%{opacity:.25}40%{opacity:1}}
-#ca-ki-bubble{position:fixed;bottom:28px;right:__POS_RIGHT__;left:__POS_LEFT__;z-index:99999;width:58px;height:58px;border-radius:16px;background:__COLOR__;color:#fff;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;transition:transform .2s ease,box-shadow .2s ease;__CUSTOM_CSS__}
+#ca-ki-bubble{position:fixed;bottom:66px;right:__POS_RIGHT__;left:__POS_LEFT__;z-index:99999;width:58px;height:58px;border-radius:16px;background:__COLOR__;color:#fff;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;transition:transform .2s ease,box-shadow .2s ease;__CUSTOM_CSS__}
 #ca-ki-bubble:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.22)}
 #ca-ki-bubble:active{transform:scale(.95)}
 #ca-ki-bubble svg{width:26px;height:26px}
-#ca-ki-panel{position:fixed;bottom:98px;right:__PANEL_RIGHT__;left:__PANEL_LEFT__;z-index:99999;width:400px;max-width:calc(100vw - 24px);height:600px;max-height:calc(100vh - 120px);background:#fff;border-radius:16px;box-shadow:0 20px 50px -10px rgba(0,0,0,.22),0 0 0 1px rgba(0,0,0,.04);display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+#ca-ki-panel{position:fixed;bottom:136px;right:__PANEL_RIGHT__;left:__PANEL_LEFT__;z-index:99999;width:400px;max-width:calc(100vw - 24px);height:600px;max-height:calc(100vh - 120px);background:#fff;border-radius:16px;box-shadow:0 20px 50px -10px rgba(0,0,0,.22),0 0 0 1px rgba(0,0,0,.04);display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
 #ca-ki-panel.open{display:flex;animation:ca-ki-in .25s ease}
 #ca-ki-header{background:__COLOR__;color:#fff;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 #ca-ki-hdr-left{display:flex;align-items:center;gap:10px}
@@ -162,10 +162,10 @@ class KiWidgetInjectorListener
 .ca-ki-tbl-head{font-weight:700}
 .ca-ki-tbl-head .ca-ki-tbl-cell{border-bottom:2px solid #d1d5db;padding-bottom:4px}
 .ca-ki-tbl-cell{display:table-cell;padding:3px 8px 3px 0;vertical-align:top;border-bottom:1px solid #f0f0f0}
-#ca-ki-input-area{border-top:1px solid #eee;padding:12px 14px;display:flex;gap:8px;flex-shrink:0;background:#fff;align-items:flex-end}
+#ca-ki-input-area{border-top:1px solid #eee;padding:12px 14px;display:flex;gap:8px;flex-shrink:0;background:#fff;align-items:center}
 #ca-ki-input{flex:1;border:1px solid #ddd;border-radius:12px;padding:10px 14px;font-size:14px;resize:none;max-height:80px;line-height:1.4;font-family:inherit;outline:none;transition:border-color .15s;background:#fafafa}
 #ca-ki-input:focus{border-color:__COLOR__;background:#fff}
-#ca-ki-send{width:40px;height:40px;min-width:40px;border-radius:12px;background:__COLOR__;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s}
+#ca-ki-send{width:40px;height:40px;min-width:40px;min-height:40px;border-radius:12px;background:__COLOR__;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s;margin-bottom:0}
 #ca-ki-send:hover{opacity:.88}
 #ca-ki-send:disabled{background:#d1d5db;cursor:not-allowed;opacity:1}
 #ca-ki-send svg{width:20px;height:20px}
