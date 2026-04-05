@@ -24,6 +24,7 @@ class KiSettingsModule extends BackendModule
         'welcomeMessage' => 'Hallo! Wie kann ich Ihnen helfen?',
         'bubbleIcon' => 'chat',
         'customCss' => '',
+        'excludedPages' => '',
     ];
 
     public function __construct()
@@ -86,6 +87,8 @@ class KiSettingsModule extends BackendModule
             // Strip dangerous characters to prevent injection
             $customCss = str_replace(['{', '}', '<', '>', '"'], '', $customCss);
 
+            $excludedPages = trim((string) Input::post('ki_excluded_pages'));
+
             // Save all settings
             $settings = [
                 'enabled' => $enabled,
@@ -96,6 +99,7 @@ class KiSettingsModule extends BackendModule
                 'welcomeMessage' => $welcomeMessage,
                 'bubbleIcon' => $bubbleIcon,
                 'customCss' => $customCss,
+                'excludedPages' => $excludedPages,
             ];
 
             try {
@@ -105,6 +109,11 @@ class KiSettingsModule extends BackendModule
                 // Auto-register site at portal when API key is set
                 if ($apiKey !== '') {
                     $registerResult = $this->registerSiteAtPortal($apiKey);
+
+                    // Send excluded pages to portal
+                    if ($excludedPages !== '') {
+                        $this->sendExcludedPagesToPortal($apiKey, $excludedPages);
+                    }
                 }
 
                 $statusText = $enabled ? 'aktiviert' : 'deaktiviert';
@@ -155,6 +164,7 @@ class KiSettingsModule extends BackendModule
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_TIMEOUT => 10,
                 CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_FOLLOWLOCATION => false,
             ]);
 
             $response = curl_exec($ch);
@@ -177,6 +187,29 @@ class KiSettingsModule extends BackendModule
             return true;
         } catch (\Throwable $e) {
             return $e->getMessage();
+        }
+    }
+
+    private function sendExcludedPagesToPortal(string $apiKey, string $excludedPages): void
+    {
+        try {
+            $lines = array_filter(array_map('trim', explode("\n", $excludedPages)));
+            $payload = json_encode(['excludedPatterns' => array_values($lines)], JSON_THROW_ON_ERROR);
+            $endpoint = 'https://portal.venne-software.de/contao-agent/api/ki/' . $apiKey . '/excluded-pages';
+
+            $ch = curl_init($endpoint);
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $payload,
+                CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT => 10,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_FOLLOWLOCATION => false,
+            ]);
+            curl_exec($ch);
+            curl_close($ch);
+        } catch (\Throwable) {
         }
     }
 
@@ -213,5 +246,6 @@ class KiSettingsModule extends BackendModule
         $this->Template->kiWelcomeMessage = $settings['welcomeMessage'];
         $this->Template->kiBubbleIcon = $settings['bubbleIcon'];
         $this->Template->kiCustomCss = $settings['customCss'] ?? '';
+        $this->Template->kiExcludedPages = $settings['excludedPages'] ?? '';
     }
 }

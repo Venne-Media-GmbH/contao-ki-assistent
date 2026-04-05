@@ -157,6 +157,18 @@
                         </div>
                     </div>
 
+                    <!-- Seiten-Ausschluss -->
+                    <div class="ki-card">
+                        <h3>Seiten-Ausschluss (Crawling)</h3>
+                        <p class="desc">URL-Pfade die beim Indizieren übersprungen werden. Ein Muster pro Zeile. Wildcards (*) erlaubt.</p>
+                        <div class="ki-field">
+                            <label for="ki_excluded_pages">Ausgeschlossene Pfade</label>
+                            <textarea name="ki_excluded_pages" id="ki_excluded_pages" class="ki-input ki-input-mono" style="max-width:100%;min-height:80px;resize:vertical"
+                                placeholder="/impressum&#10;/datenschutz&#10;/intern/*"><?= \Contao\StringUtil::specialchars($this->kiExcludedPages ?? '') ?></textarea>
+                            <p class="help">Beispiele: <code>/impressum</code>, <code>/intern/*</code>, <code>/downloads/*</code>. Wird beim nächsten Indizieren angewendet.</p>
+                        </div>
+                    </div>
+
                     <div style="margin-top:8px">
                         <button type="submit" class="ki-btn">Einstellungen speichern</button>
                     </div>
