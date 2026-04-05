@@ -118,61 +118,61 @@ class KiWidgetInjectorListener
 
         // Use Nowdoc to avoid PHP escape issues in JS code
         $template = <<<'WIDGET'
-<!-- Contao KI Assistent Widget -->
+<!-- Contao KI Assistent Widget – Powered by Venne Media -->
 <style>
-@keyframes ca-ki-fadein{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes ca-ki-pulse{0%,100%{box-shadow:0 0 0 0 __COLOR__40}70%{box-shadow:0 0 0 12px __COLOR__00}}
-@keyframes ca-ki-dots{0%,80%,100%{opacity:.3}40%{opacity:1}}
-#ca-ki-bubble{position:fixed;bottom:28px;right:__POS_RIGHT__;left:__POS_LEFT__;z-index:99999;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,__COLOR__,__COLOR__dd);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 24px __COLOR__40,0 2px 8px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;transition:transform .25s cubic-bezier(.4,0,.2,1),box-shadow .25s;__CUSTOM_CSS__}
-#ca-ki-bubble:hover{transform:scale(1.1) rotate(-3deg);box-shadow:0 8px 32px __COLOR__50,0 4px 12px rgba(0,0,0,.15)}
+@keyframes ca-ki-in{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes ca-ki-dots{0%,80%,100%{opacity:.25}40%{opacity:1}}
+#ca-ki-bubble{position:fixed;bottom:28px;right:__POS_RIGHT__;left:__POS_LEFT__;z-index:99999;width:58px;height:58px;border-radius:16px;background:__COLOR__;color:#fff;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;transition:transform .2s ease,box-shadow .2s ease;__CUSTOM_CSS__}
+#ca-ki-bubble:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.22)}
 #ca-ki-bubble:active{transform:scale(.95)}
-#ca-ki-bubble svg{width:28px;height:28px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.15))}
-#ca-ki-panel{position:fixed;bottom:100px;right:__PANEL_RIGHT__;left:__PANEL_LEFT__;z-index:99999;width:400px;max-width:calc(100vw - 32px);height:600px;max-height:calc(100vh - 130px);background:#fff;border-radius:20px;box-shadow:0 25px 60px -12px rgba(0,0,0,.25),0 0 0 1px rgba(0,0,0,.05);display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
-#ca-ki-panel.open{display:flex;animation:ca-ki-fadein .3s cubic-bezier(.4,0,.2,1)}
-#ca-ki-header{background:linear-gradient(135deg,__COLOR__ 0%,__COLOR__cc 50%,#1a1a2e 100%);color:#fff;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:relative;overflow:hidden}
-#ca-ki-header::before{content:'';position:absolute;top:-30px;right:-30px;width:80px;height:80px;background:rgba(255,255,255,.08);border-radius:50%}
-#ca-ki-header::after{content:'';position:absolute;bottom:-20px;left:-10px;width:50px;height:50px;background:rgba(255,255,255,.05);border-radius:50%}
-#ca-ki-hdr-left{display:flex;align-items:center;gap:10px;position:relative;z-index:1}
-#ca-ki-hdr-icon{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.15);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center}
+#ca-ki-bubble svg{width:26px;height:26px}
+#ca-ki-panel{position:fixed;bottom:98px;right:__PANEL_RIGHT__;left:__PANEL_LEFT__;z-index:99999;width:400px;max-width:calc(100vw - 24px);height:600px;max-height:calc(100vh - 120px);background:#fff;border-radius:16px;box-shadow:0 20px 50px -10px rgba(0,0,0,.22),0 0 0 1px rgba(0,0,0,.04);display:none;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+#ca-ki-panel.open{display:flex;animation:ca-ki-in .25s ease}
+#ca-ki-header{background:__COLOR__;color:#fff;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+#ca-ki-hdr-left{display:flex;align-items:center;gap:10px}
+#ca-ki-hdr-icon{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center}
 #ca-ki-hdr-icon svg{width:18px;height:18px}
-#ca-ki-header h3{margin:0;font-size:15px;font-weight:700;letter-spacing:-.01em;position:relative;z-index:1}
-#ca-ki-header p{margin:2px 0 0;font-size:11px;opacity:.7;font-weight:400}
-#ca-ki-close{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.8);cursor:pointer;padding:6px;border-radius:8px;display:flex;transition:all .15s;position:relative;z-index:1}
-#ca-ki-close:hover{color:#fff;background:rgba(255,255,255,.2)}
-#ca-ki-msgs{flex:1;overflow-y:auto;padding:20px 16px;display:flex;flex-direction:column;gap:10px;background:#fafbfc}
-#ca-ki-msgs::-webkit-scrollbar{width:4px}
-#ca-ki-msgs::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:4px}
-.ca-ki-msg{max-width:82%;padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.6;word-wrap:break-word;animation:ca-ki-fadein .25s ease}
-.ca-ki-msg a{color:inherit;text-decoration:underline;text-underline-offset:2px}
-.ca-ki-msg code{background:rgba(0,0,0,.06);padding:2px 6px;border-radius:5px;font-size:12.5px;font-family:'SF Mono',SFMono-Regular,Consolas,monospace}
-.ca-ki-user{align-self:flex-end;background:linear-gradient(135deg,__COLOR__,__COLOR__dd);color:#fff;border-bottom-right-radius:6px;box-shadow:0 2px 8px __COLOR__25}
-.ca-ki-bot{align-self:flex-start;background:#fff;color:#1f2937;border-bottom-left-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.06),0 0 0 1px rgba(0,0,0,.04)}
-.ca-ki-typing{font-style:normal;color:#6b7280}
-.ca-ki-dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:#9ca3af;margin:0 2px;animation:ca-ki-dots 1.4s infinite ease-in-out both}
+#ca-ki-header h3{margin:0;font-size:15px;font-weight:600}
+#ca-ki-header p{margin:1px 0 0;font-size:11px;opacity:.75;font-weight:400}
+#ca-ki-close{background:none;border:none;color:rgba(255,255,255,.75);cursor:pointer;padding:4px;border-radius:6px;display:flex;transition:color .15s}
+#ca-ki-close:hover{color:#fff}
+#ca-ki-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;background:#f8f9fa}
+#ca-ki-msgs::-webkit-scrollbar{width:3px}
+#ca-ki-msgs::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
+.ca-ki-msg{max-width:84%;padding:11px 15px;border-radius:14px;font-size:14px;line-height:1.6;word-wrap:break-word;animation:ca-ki-in .2s ease}
+.ca-ki-msg a{color:inherit;text-decoration:underline}
+.ca-ki-msg code{background:rgba(0,0,0,.06);padding:1px 5px;border-radius:4px;font-size:12.5px;font-family:SFMono-Regular,Consolas,monospace}
+.ca-ki-user{align-self:flex-end;background:__COLOR__;color:#fff;border-bottom-right-radius:4px}
+.ca-ki-bot{align-self:flex-start;background:#fff;color:#1f2937;border-bottom-left-radius:4px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.ca-ki-typing{color:#9ca3af}
+.ca-ki-dots span{display:inline-block;width:5px;height:5px;border-radius:50%;background:#9ca3af;margin:0 2px;animation:ca-ki-dots 1.4s infinite ease-in-out both}
 .ca-ki-dots span:nth-child(1){animation-delay:-.32s}
 .ca-ki-dots span:nth-child(2){animation-delay:-.16s}
-.ca-ki-chip{display:inline-block;padding:8px 16px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:24px;font-size:13px;cursor:pointer;margin:3px 4px 3px 0;transition:all .2s;box-shadow:0 1px 2px rgba(0,0,0,.04)}
-.ca-ki-chip:hover{background:__COLOR__;color:#fff;border-color:__COLOR__;box-shadow:0 2px 8px __COLOR__25;transform:translateY(-1px)}
+.ca-ki-chip{display:inline-block;padding:7px 14px;background:#fff;color:#374151;border:1px solid #e5e7eb;border-radius:20px;font-size:13px;cursor:pointer;margin:2px 4px 2px 0;transition:all .15s}
+.ca-ki-chip:hover{background:__COLOR__;color:#fff;border-color:__COLOR__}
 .ca-ki-err{color:#dc2626;font-size:13px;background:#fef2f2;padding:8px 12px;border-radius:8px;border:1px solid #fecaca}
+.ca-ki-src{margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,.06);font-size:11px;color:#9ca3af}
+.ca-ki-src a{color:#6b7280;text-decoration:underline}
 .ca-ki-pre{background:#1e1e2e;color:#cdd6f4;padding:10px 12px;border-radius:8px;font-size:12px;overflow-x:auto;margin:4px 0;font-family:SFMono-Regular,Consolas,monospace;white-space:pre-wrap;word-break:break-word}
-.ca-ki-heading{display:block;margin:4px 0 2px;font-size:14px}
-.ca-ki-li{display:block;padding-left:4px;margin:1px 0}
-.ca-ki-hr{border:none;border-top:1px solid #d1d5db;margin:6px 0}
-.ca-ki-tbl{display:flex;flex-direction:column;gap:2px;margin:6px 0;font-size:13px}
-.ca-ki-tbl-row{display:flex;gap:8px;padding:3px 0}
-.ca-ki-tbl-head{font-weight:700;border-bottom:1px solid #d1d5db;padding-bottom:4px}
-.ca-ki-tbl-cell{flex:1;min-width:0;word-break:break-word}
-#ca-ki-input-area{border-top:1px solid #f0f0f0;padding:14px 16px;display:flex;gap:10px;flex-shrink:0;background:#fff}
-#ca-ki-input{flex:1;border:1.5px solid #e5e7eb;border-radius:12px;padding:10px 14px;font-size:14px;resize:none;max-height:80px;line-height:1.4;font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s;background:#fafbfc}
-#ca-ki-input:focus{border-color:__COLOR__;box-shadow:0 0 0 3px __COLOR__15;background:#fff}
-#ca-ki-send{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,__COLOR__,__COLOR__dd);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;box-shadow:0 2px 8px __COLOR__30}
-#ca-ki-send:hover{transform:scale(1.05);box-shadow:0 4px 12px __COLOR__40}
-#ca-ki-send:active{transform:scale(.95)}
-#ca-ki-send:disabled{background:#e5e7eb;box-shadow:none;cursor:not-allowed;transform:none}
-#ca-ki-send svg{width:18px;height:18px}
-#ca-ki-footer{padding:6px 16px 8px;text-align:center;flex-shrink:0;background:#fff}
-#ca-ki-footer span{font-size:10px;color:#c0c0c0;letter-spacing:.02em}
-@media(max-width:640px){#ca-ki-panel{bottom:0;right:0;left:0;width:100vw;max-width:100vw;height:100vh;max-height:100vh;border-radius:0}#ca-ki-bubble{bottom:20px}}
+.ca-ki-heading{display:block;margin:6px 0 2px;font-size:14px;font-weight:700}
+.ca-ki-li{display:block;padding-left:6px;margin:2px 0}
+.ca-ki-hr{border:none;border-top:1px solid #e5e7eb;margin:8px 0}
+.ca-ki-tbl{display:table;width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+.ca-ki-tbl-row{display:table-row}
+.ca-ki-tbl-head{font-weight:700}
+.ca-ki-tbl-head .ca-ki-tbl-cell{border-bottom:2px solid #d1d5db;padding-bottom:4px}
+.ca-ki-tbl-cell{display:table-cell;padding:3px 8px 3px 0;vertical-align:top;border-bottom:1px solid #f0f0f0}
+#ca-ki-input-area{border-top:1px solid #eee;padding:12px 14px;display:flex;gap:8px;flex-shrink:0;background:#fff;align-items:flex-end}
+#ca-ki-input{flex:1;border:1px solid #ddd;border-radius:12px;padding:10px 14px;font-size:14px;resize:none;max-height:80px;line-height:1.4;font-family:inherit;outline:none;transition:border-color .15s;background:#fafafa}
+#ca-ki-input:focus{border-color:__COLOR__;background:#fff}
+#ca-ki-send{width:40px;height:40px;min-width:40px;border-radius:12px;background:__COLOR__;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s}
+#ca-ki-send:hover{opacity:.88}
+#ca-ki-send:disabled{background:#d1d5db;cursor:not-allowed;opacity:1}
+#ca-ki-send svg{width:20px;height:20px}
+#ca-ki-footer{padding:5px 14px 7px;text-align:center;flex-shrink:0;background:#fff;border-top:1px solid #f5f5f5}
+#ca-ki-footer a{font-size:10px;color:#b0b0b0;text-decoration:none;letter-spacing:.01em}
+#ca-ki-footer a:hover{color:#888}
+@media(max-width:640px){#ca-ki-panel{bottom:0;right:0;left:0;width:100vw;max-width:100vw;height:100vh;max-height:100vh;border-radius:0}#ca-ki-bubble{bottom:16px;right:16px}}
 </style>
 <div id="ca-ki-bubble" title="Chat öffnen">
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">__ICON_SVG__</svg>
@@ -181,16 +181,16 @@ class KiWidgetInjectorListener
   <div id="ca-ki-header">
     <div id="ca-ki-hdr-left">
       <div id="ca-ki-hdr-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg></div>
-      <div><h3>__TITLE__</h3><p>Fragen Sie mich alles</p></div>
+      <div><h3>__TITLE__</h3><p>Ihr digitaler Assistent</p></div>
     </div>
     <button id="ca-ki-close" title="Schließen"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
   </div>
   <div id="ca-ki-msgs"></div>
   <div id="ca-ki-input-area">
     <textarea id="ca-ki-input" rows="1" placeholder="Nachricht eingeben..." maxlength="5000"></textarea>
-    <button id="ca-ki-send" title="Senden"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg></button>
+    <button id="ca-ki-send" title="Senden"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
   </div>
-  <div id="ca-ki-footer"><span>Powered by KI Assistent</span></div>
+  <div id="ca-ki-footer"><a href="https://venne-media.de" target="_blank" rel="noopener">Powered by Venne Media</a></div>
 </div>
 <script>
 (function(){
