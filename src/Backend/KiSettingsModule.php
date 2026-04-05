@@ -287,8 +287,8 @@ class KiSettingsModule extends BackendModule
 
         try {
             $rootPages = \Contao\PageModel::findBy(
-                ['pid=?', 'type=?'],
-                [0, 'root'],
+                ['pid=?', 'type=?', 'published=?'],
+                [0, 'root', 1],
                 ['order' => 'sorting ASC']
             );
 
@@ -303,7 +303,7 @@ class KiSettingsModule extends BackendModule
                     'alias' => $rootPage->alias ?? '',
                     'type' => $rootPage->type,
                     'level' => 0,
-                    'published' => (bool) $rootPage->published,
+                    'published' => true,
                     'url' => '',
                 ];
                 $this->loadChildPages((int) $rootPage->id, 1, $pages);
@@ -318,8 +318,8 @@ class KiSettingsModule extends BackendModule
     private function loadChildPages(int $parentId, int $level, array &$pages): void
     {
         $children = \Contao\PageModel::findBy(
-            ['pid=?'],
-            [$parentId],
+            ['pid=?', 'published=?'],
+            [$parentId, 1],
             ['order' => 'sorting ASC']
         );
 

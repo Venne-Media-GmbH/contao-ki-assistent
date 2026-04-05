@@ -174,19 +174,15 @@
                                         $indent = $page['level'] * 20;
                                         $isSelected = in_array($page['id'], $selectedIds, true);
                                         $isRegular = in_array($page['type'], ['regular', 'forward', 'redirect'], true);
-                                        $opacity = $page['published'] ? '1' : '0.4';
                                         $typeLabel = match($page['type']) {
                                             'root' => '🌐',
                                             'regular' => '📄',
                                             'forward' => '↗️',
                                             'redirect' => '🔗',
-                                            'error_401' => '🔒',
-                                            'error_403' => '⛔',
-                                            'error_404' => '❌',
                                             default => '📁',
                                         };
                                     ?>
-                                    <label style="display:flex;align-items:center;gap:6px;padding:3px 0;padding-left:<?= $indent ?>px;opacity:<?= $opacity ?>;cursor:<?= $isRegular ? 'pointer' : 'default' ?>;font-size:13px">
+                                    <label style="display:flex;align-items:center;gap:6px;padding:3px 0;padding-left:<?= $indent ?>px;cursor:<?= $isRegular ? 'pointer' : 'default' ?>;font-size:13px">
                                         <?php if ($isRegular): ?>
                                             <input type="checkbox" name="ki_crawl_pages[]" value="<?= $page['id'] ?>" class="ki-page-cb" <?= $isSelected ? 'checked' : '' ?> style="margin:0">
                                         <?php else: ?>
@@ -196,9 +192,6 @@
                                         <span style="font-weight:<?= $page['type'] === 'root' ? '700' : '400' ?>"><?= \Contao\StringUtil::specialchars($page['title']) ?></span>
                                         <?php if ($page['alias']): ?>
                                             <span style="font-size:11px;opacity:.5;font-family:monospace">/<?= \Contao\StringUtil::specialchars($page['alias']) ?></span>
-                                        <?php endif; ?>
-                                        <?php if (!$page['published']): ?>
-                                            <span style="font-size:10px;color:#ef4444;font-weight:600">(unveröffentlicht)</span>
                                         <?php endif; ?>
                                     </label>
                                     <?php endforeach; ?>
