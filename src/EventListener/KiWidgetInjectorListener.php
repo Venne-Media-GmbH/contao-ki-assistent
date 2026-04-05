@@ -168,7 +168,7 @@ class KiWidgetInjectorListener
 #ca-ki-send{width:40px;height:40px;min-width:40px;min-height:40px;border-radius:12px;background:__COLOR__;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s;margin-bottom:0}
 #ca-ki-send:hover{opacity:.88}
 #ca-ki-send:disabled{background:#d1d5db;cursor:not-allowed;opacity:1}
-#ca-ki-send svg{width:20px;height:20px}
+#ca-ki-send svg{width:20px;height:20px;display:block;overflow:visible}
 #ca-ki-footer{padding:5px 14px 7px;text-align:center;flex-shrink:0;background:#fff;border-top:1px solid #f5f5f5}
 #ca-ki-footer a{font-size:10px;color:#b0b0b0;text-decoration:none;letter-spacing:.01em}
 #ca-ki-footer a:hover{color:#888}
@@ -188,7 +188,7 @@ class KiWidgetInjectorListener
   <div id="ca-ki-msgs"></div>
   <div id="ca-ki-input-area">
     <textarea id="ca-ki-input" rows="1" placeholder="Nachricht eingeben..." maxlength="5000"></textarea>
-    <button id="ca-ki-send" title="Senden"><svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+    <button id="ca-ki-send" title="Senden"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="none"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="white"/></svg></button>
   </div>
   <div id="ca-ki-footer"><a href="https://venne-media.de" target="_blank" rel="noopener">Powered by Venne Media</a></div>
 </div>
