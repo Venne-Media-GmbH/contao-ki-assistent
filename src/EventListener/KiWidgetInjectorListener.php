@@ -188,7 +188,7 @@ class KiWidgetInjectorListener
   <div id="ca-ki-msgs"></div>
   <div id="ca-ki-input-area">
     <textarea id="ca-ki-input" rows="1" placeholder="Nachricht eingeben..." maxlength="5000"></textarea>
-    <button id="ca-ki-send" title="Senden"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+    <button id="ca-ki-send" title="Senden"><svg width="20" height="20" viewBox="0 0 24 24" fill="#ffffff"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
   </div>
   <div id="ca-ki-footer"><a href="https://venne-media.de" target="_blank" rel="noopener">Powered by Venne Media</a></div>
 </div>

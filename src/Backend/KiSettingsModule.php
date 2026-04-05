@@ -24,7 +24,7 @@ class KiSettingsModule extends BackendModule
         'welcomeMessage' => 'Hallo! Wie kann ich Ihnen helfen?',
         'bubbleIcon' => 'chat',
         'customCss' => '',
-        'excludedPages' => '',
+        'crawlPageIds' => [],
     ];
 
     public function __construct()
@@ -87,7 +87,11 @@ class KiSettingsModule extends BackendModule
             // Strip dangerous characters to prevent injection
             $customCss = str_replace(['{', '}', '<', '>', '"'], '', $customCss);
 
-            $excludedPages = trim((string) Input::post('ki_excluded_pages'));
+            $customCss = str_replace(['{', '}', '<', '>', '"'], '', $customCss);
+
+            // Crawl pages - selected page IDs from checkboxes
+            $selectedPages = Input::post('ki_crawl_pages');
+            $crawlPageIds = is_array($selectedPages) ? array_map('intval', $selectedPages) : [];
 
             // Save all settings
             $settings = [
@@ -99,7 +103,7 @@ class KiSettingsModule extends BackendModule
                 'welcomeMessage' => $welcomeMessage,
                 'bubbleIcon' => $bubbleIcon,
                 'customCss' => $customCss,
-                'excludedPages' => $excludedPages,
+                'crawlPageIds' => $crawlPageIds,
             ];
 
             try {
@@ -110,9 +114,9 @@ class KiSettingsModule extends BackendModule
                 if ($apiKey !== '') {
                     $registerResult = $this->registerSiteAtPortal($apiKey);
 
-                    // Send excluded pages to portal
-                    if ($excludedPages !== '') {
-                        $this->sendExcludedPagesToPortal($apiKey, $excludedPages);
+                    // Send crawl page URLs to portal
+                    if (!empty($crawlPageIds)) {
+                        $this->sendCrawlPagesToPortal($apiKey, $crawlPageIds);
                     }
                 }
 
@@ -190,12 +194,32 @@ class KiSettingsModule extends BackendModule
         }
     }
 
-    private function sendExcludedPagesToPortal(string $apiKey, string $excludedPages): void
+    /**
+     * Send the selected crawl page URLs to the portal.
+     *
+     * @param int[] $pageIds
+     */
+    private function sendCrawlPagesToPortal(string $apiKey, array $pageIds): void
     {
         try {
-            $lines = array_filter(array_map('trim', explode("\n", $excludedPages)));
-            $payload = json_encode(['excludedPatterns' => array_values($lines)], JSON_THROW_ON_ERROR);
-            $endpoint = 'https://portal.venne-software.de/contao-agent/api/ki/' . $apiKey . '/excluded-pages';
+            $urls = [];
+            foreach ($pageIds as $pageId) {
+                $page = \Contao\PageModel::findByPk($pageId);
+                if ($page !== null) {
+                    try {
+                        $urls[] = $page->getAbsoluteUrl();
+                    } catch (\Throwable) {
+                        // Page might not have a valid URL (e.g. root page)
+                    }
+                }
+            }
+
+            if (empty($urls)) {
+                return;
+            }
+
+            $payload = json_encode(['crawlUrls' => array_values($urls)], JSON_THROW_ON_ERROR);
+            $endpoint = 'https://portal.venne-software.de/contao-agent/api/ki/' . $apiKey . '/crawl-pages';
 
             $ch = curl_init($endpoint);
             curl_setopt_array($ch, [
@@ -203,7 +227,7 @@ class KiSettingsModule extends BackendModule
                 CURLOPT_POSTFIELDS => $payload,
                 CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
                 CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT => 10,
+                CURLOPT_TIMEOUT => 15,
                 CURLOPT_CONNECTTIMEOUT => 5,
                 CURLOPT_FOLLOWLOCATION => false,
             ]);
@@ -246,6 +270,83 @@ class KiSettingsModule extends BackendModule
         $this->Template->kiWelcomeMessage = $settings['welcomeMessage'];
         $this->Template->kiBubbleIcon = $settings['bubbleIcon'];
         $this->Template->kiCustomCss = $settings['customCss'] ?? '';
-        $this->Template->kiExcludedPages = $settings['excludedPages'] ?? '';
+        $this->Template->kiCrawlPageIds = $settings['crawlPageIds'] ?? [];
+
+        // Load page tree for the template
+        $this->Template->pageTree = $this->loadPageTree();
+    }
+
+    /**
+     * Load the Contao page tree as a flat list with hierarchy info.
+     *
+     * @return array<array{id: int, title: string, alias: string, type: string, level: int, published: bool, url: string}>
+     */
+    private function loadPageTree(): array
+    {
+        $pages = [];
+
+        try {
+            $rootPages = \Contao\PageModel::findBy(
+                ['pid=?', 'type=?'],
+                [0, 'root'],
+                ['order' => 'sorting ASC']
+            );
+
+            if ($rootPages === null) {
+                return [];
+            }
+
+            foreach ($rootPages as $rootPage) {
+                $pages[] = [
+                    'id' => (int) $rootPage->id,
+                    'title' => $rootPage->title,
+                    'alias' => $rootPage->alias ?? '',
+                    'type' => $rootPage->type,
+                    'level' => 0,
+                    'published' => (bool) $rootPage->published,
+                    'url' => '',
+                ];
+                $this->loadChildPages((int) $rootPage->id, 1, $pages);
+            }
+        } catch (\Throwable) {
+            // PageModel might not be available
+        }
+
+        return $pages;
+    }
+
+    private function loadChildPages(int $parentId, int $level, array &$pages): void
+    {
+        $children = \Contao\PageModel::findBy(
+            ['pid=?'],
+            [$parentId],
+            ['order' => 'sorting ASC']
+        );
+
+        if ($children === null) {
+            return;
+        }
+
+        foreach ($children as $child) {
+            $url = '';
+            if (in_array($child->type, ['regular', 'forward', 'redirect'], true)) {
+                try {
+                    $url = $child->getAbsoluteUrl();
+                } catch (\Throwable) {
+                }
+            }
+
+            $pages[] = [
+                'id' => (int) $child->id,
+                'title' => $child->title,
+                'alias' => $child->alias ?? '',
+                'type' => $child->type,
+                'level' => $level,
+                'published' => (bool) $child->published,
+                'url' => $url,
+            ];
+
+            $this->loadChildPages((int) $child->id, $level + 1, $pages);
+        }
     }
 }

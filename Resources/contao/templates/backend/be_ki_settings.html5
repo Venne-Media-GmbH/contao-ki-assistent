@@ -157,15 +157,56 @@
                         </div>
                     </div>
 
-                    <!-- Seiten-Ausschluss -->
+                    <!-- Seitenbaum für Crawling -->
                     <div class="ki-card">
-                        <h3>Seiten-Ausschluss (Crawling)</h3>
-                        <p class="desc">URL-Pfade die beim Indizieren übersprungen werden. Ein Muster pro Zeile. Wildcards (*) erlaubt.</p>
+                        <h3>Seiten für KI-Wissensbasis</h3>
+                        <p class="desc">Wählen Sie die Seiten aus, die für den KI-Assistenten indiziert werden sollen. Nur ausgewählte Seiten werden gecrawlt.</p>
                         <div class="ki-field">
-                            <label for="ki_excluded_pages">Ausgeschlossene Pfade</label>
-                            <textarea name="ki_excluded_pages" id="ki_excluded_pages" class="ki-input ki-input-mono" style="max-width:100%;min-height:80px;resize:vertical"
-                                placeholder="/impressum&#10;/datenschutz&#10;/intern/*"><?= \Contao\StringUtil::specialchars($this->kiExcludedPages ?? '') ?></textarea>
-                            <p class="help">Beispiele: <code>/impressum</code>, <code>/intern/*</code>, <code>/downloads/*</code>. Wird beim nächsten Indizieren angewendet.</p>
+                            <?php if (!empty($this->pageTree)): ?>
+                                <div style="max-height:400px;overflow-y:auto;border:1px solid rgba(128,128,128,.25);border-radius:8px;padding:12px">
+                                    <div style="margin-bottom:8px">
+                                        <button type="button" onclick="document.querySelectorAll('.ki-page-cb').forEach(function(c){c.checked=true})" style="font-size:11px;cursor:pointer;background:none;border:1px solid rgba(128,128,128,.3);border-radius:4px;padding:2px 8px;margin-right:4px">Alle auswählen</button>
+                                        <button type="button" onclick="document.querySelectorAll('.ki-page-cb').forEach(function(c){c.checked=false})" style="font-size:11px;cursor:pointer;background:none;border:1px solid rgba(128,128,128,.3);border-radius:4px;padding:2px 8px">Alle abwählen</button>
+                                    </div>
+                                    <?php
+                                    $selectedIds = is_array($this->kiCrawlPageIds) ? $this->kiCrawlPageIds : [];
+                                    foreach ($this->pageTree as $page):
+                                        $indent = $page['level'] * 20;
+                                        $isSelected = in_array($page['id'], $selectedIds, true);
+                                        $isRegular = in_array($page['type'], ['regular', 'forward', 'redirect'], true);
+                                        $opacity = $page['published'] ? '1' : '0.4';
+                                        $typeLabel = match($page['type']) {
+                                            'root' => '🌐',
+                                            'regular' => '📄',
+                                            'forward' => '↗️',
+                                            'redirect' => '🔗',
+                                            'error_401' => '🔒',
+                                            'error_403' => '⛔',
+                                            'error_404' => '❌',
+                                            default => '📁',
+                                        };
+                                    ?>
+                                    <label style="display:flex;align-items:center;gap:6px;padding:3px 0;padding-left:<?= $indent ?>px;opacity:<?= $opacity ?>;cursor:<?= $isRegular ? 'pointer' : 'default' ?>;font-size:13px">
+                                        <?php if ($isRegular): ?>
+                                            <input type="checkbox" name="ki_crawl_pages[]" value="<?= $page['id'] ?>" class="ki-page-cb" <?= $isSelected ? 'checked' : '' ?> style="margin:0">
+                                        <?php else: ?>
+                                            <span style="width:13px;display:inline-block"></span>
+                                        <?php endif; ?>
+                                        <span><?= $typeLabel ?></span>
+                                        <span style="font-weight:<?= $page['type'] === 'root' ? '700' : '400' ?>"><?= \Contao\StringUtil::specialchars($page['title']) ?></span>
+                                        <?php if ($page['alias']): ?>
+                                            <span style="font-size:11px;opacity:.5;font-family:monospace">/<?= \Contao\StringUtil::specialchars($page['alias']) ?></span>
+                                        <?php endif; ?>
+                                        <?php if (!$page['published']): ?>
+                                            <span style="font-size:10px;color:#ef4444;font-weight:600">(unveröffentlicht)</span>
+                                        <?php endif; ?>
+                                    </label>
+                                    <?php endforeach; ?>
+                                </div>
+                                <p class="help" style="margin-top:8px">Ausgewählte Seiten werden beim nächsten Indizieren gecrawlt und in die KI-Wissensbasis aufgenommen. Unveröffentlichte Seiten werden ausgegraut angezeigt.</p>
+                            <?php else: ?>
+                                <p style="font-size:13px;opacity:.6">Kein Seitenbaum verfügbar. Stellen Sie sicher, dass mindestens eine Root-Seite existiert.</p>
+                            <?php endif; ?>
                         </div>
                     </div>
 
