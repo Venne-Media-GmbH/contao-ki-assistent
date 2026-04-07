@@ -111,11 +111,16 @@ class KiSettingsModule extends BackendModule
             }
 
             // Check for uploaded file
+            $uploadError = null;
             if (!empty($_FILES['ki_logo_file']['tmp_name']) && empty($_FILES['ki_logo_file']['error'])) {
-                $uploaded = $this->handleLogoUpload($_FILES['ki_logo_file']);
-                if ($uploaded !== null) {
-                    $logoUrl = $uploaded;
+                $uploadResult = $this->handleLogoUpload($_FILES['ki_logo_file']);
+                if (is_array($uploadResult)) {
+                    $logoUrl = $uploadResult['url'];
+                } else {
+                    $uploadError = $uploadResult;
                 }
+            } elseif (!empty($_FILES['ki_logo_file']['error']) && $_FILES['ki_logo_file']['error'] !== UPLOAD_ERR_NO_FILE) {
+                $uploadError = 'Upload-Fehlercode: ' . $_FILES['ki_logo_file']['error'];
             }
 
             // Remove logo if requested
@@ -184,6 +189,9 @@ class KiSettingsModule extends BackendModule
                     $message .= ' Seite wurde im Portal registriert.';
                 } elseif (isset($registerResult) && is_string($registerResult)) {
                     $message .= ' <span style="color:#d97706">Portal-Registrierung: ' . htmlspecialchars($registerResult, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</span>';
+                }
+                if ($uploadError !== null) {
+                    $message .= ' <span style="color:#dc2626">Logo-Upload fehlgeschlagen: ' . htmlspecialchars($uploadError, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</span>';
                 }
                 $this->Template->message = '<div class="tl_confirm">' . $message . '</div>';
             } catch (\Exception $e) {
@@ -350,50 +358,81 @@ class KiSettingsModule extends BackendModule
     }
 
     /**
-     * Handle uploaded logo file. Stores in files/ki-assistent/ and returns the relative URL.
+     * Handle uploaded logo file. Stores in files/ki-assistent/ and returns
+     * an array with 'url' on success or an error string on failure.
+     *
+     * @return array{url: string}|string
      */
-    private function handleLogoUpload(array $file): ?string
+    private function handleLogoUpload(array $file): array|string
     {
         $allowedMimes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
         $allowedExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
 
-        // Validate size (max 2 MB)
         if ($file['size'] > 2 * 1024 * 1024) {
-            return null;
-        }
-
-        // Validate MIME type
-        $mime = mime_content_type($file['tmp_name']);
-        if (!in_array($mime, $allowedMimes, true)) {
-            return null;
+            return 'Datei zu groß (max. 2 MB).';
         }
 
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($ext, $allowedExts, true)) {
-            return null;
+            return 'Dateityp nicht erlaubt: ' . $ext;
         }
 
-        // Determine target directory: <project root>/files/ki-assistent/
-        $projectDir = System::getContainer()->getParameter('kernel.project_dir');
-        $uploadDir = $projectDir . '/files/ki-assistent';
-
-        if (!is_dir($uploadDir)) {
-            if (!mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
-                return null;
+        // MIME check (best effort - can be unavailable)
+        if (function_exists('mime_content_type')) {
+            $mime = @mime_content_type($file['tmp_name']);
+            if ($mime !== false && !in_array($mime, $allowedMimes, true)) {
+                return 'MIME-Typ nicht erlaubt: ' . $mime;
             }
         }
 
-        // Unique filename
+        // Determine target directory. Contao stores files in <project>/files/
+        $container = System::getContainer();
+        $projectDir = $container->getParameter('kernel.project_dir');
+
+        // Try Contao upload path parameter (since Contao 4.13+)
+        $uploadPath = 'files';
+        if ($container->hasParameter('contao.upload_path')) {
+            $uploadPath = $container->getParameter('contao.upload_path');
+        }
+
+        $uploadDir = $projectDir . '/' . $uploadPath . '/ki-assistent';
+
+        if (!is_dir($uploadDir)) {
+            if (!@mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+                return 'Verzeichnis konnte nicht erstellt werden: ' . $uploadDir;
+            }
+        }
+
+        if (!is_writable($uploadDir)) {
+            return 'Verzeichnis nicht beschreibbar: ' . $uploadDir;
+        }
+
         $filename = 'logo-' . time() . '-' . bin2hex(random_bytes(4)) . '.' . $ext;
         $targetPath = $uploadDir . '/' . $filename;
 
-        if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
-            return null;
+        if (!@move_uploaded_file($file['tmp_name'], $targetPath)) {
+            // Fallback: copy + unlink
+            if (!@copy($file['tmp_name'], $targetPath)) {
+                return 'move_uploaded_file fehlgeschlagen. Ziel: ' . $targetPath;
+            }
+            @unlink($file['tmp_name']);
+        }
+
+        if (!file_exists($targetPath)) {
+            return 'Datei nach Upload nicht vorhanden: ' . $targetPath;
         }
 
         @chmod($targetPath, 0664);
 
-        return '/files/ki-assistent/' . $filename;
+        // Sync into Contao DBAFS so the file shows up in the file manager
+        try {
+            $relativePath = $uploadPath . '/ki-assistent/' . $filename;
+            \Contao\Dbafs::addResource($relativePath);
+        } catch (\Throwable) {
+            // Non-fatal: file is still on disk and accessible via URL
+        }
+
+        return ['url' => '/' . $uploadPath . '/ki-assistent/' . $filename];
     }
 
     private function normalizeTime(string $time): string
