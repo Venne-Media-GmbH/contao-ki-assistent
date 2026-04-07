@@ -90,17 +90,28 @@
                         </label>
                     </div>
 
-                    <!-- API Key -->
+                    <!-- Verbindung -->
                     <div class="ki-card">
-                        <h3>Verbindung</h3>
-                        <p class="desc">Verbinden Sie das Widget mit Ihrem Contao Agent Portal-Konto.</p>
+                        <h3>Portal-Verbindung</h3>
+                        <p class="desc">Verbinden Sie diese Webseite mit Ihrem Contao Agent Portal-Konto.</p>
+
                         <div class="ki-field">
-                            <label for="ki_api_key">KI API Key</label>
-                            <input type="text" name="ki_api_key" id="ki_api_key" class="ki-input ki-input-mono"
-                                value="<?= \Contao\StringUtil::specialchars($this->kiApiKey ?? '') ?>"
-                                placeholder="caki_...">
-                            <p class="help">Den API Key finden Sie im <a href="https://portal.venne-software.de/contao-agent/ki" target="_blank">Contao Agent Portal</a> unter KI Assistent.</p>
+                            <label for="ki_kunde_key">Kunden-Key</label>
+                            <input type="text" name="ki_kunde_key" id="ki_kunde_key" class="ki-input ki-input-mono"
+                                value="<?= \Contao\StringUtil::specialchars($this->kiKundeKey ?? '') ?>"
+                                placeholder="cak_...">
+                            <p class="help">Den Kunden-Key finden Sie im <a href="https://portal.venne-software.de/contao-agent/ki" target="_blank">Contao Agent Portal</a> unter <strong>KI Assistent &rarr; Globaler KI-Kunde-Key</strong>. Beim Speichern wird Ihre Webseite automatisch beim Portal registriert.</p>
                         </div>
+
+                        <?php if (!empty($this->kiApiKey)): ?>
+                            <div class="ki-field">
+                                <label>Site-Wissensbasis-Key (automatisch vergeben)</label>
+                                <input type="text" class="ki-input ki-input-mono" readonly
+                                    value="<?= \Contao\StringUtil::specialchars($this->kiApiKey) ?>"
+                                    style="opacity:0.7">
+                                <p class="help">Dieser Key identifiziert die Wissensbasis dieser Webseite. Er wurde vom Portal automatisch vergeben.</p>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Design -->

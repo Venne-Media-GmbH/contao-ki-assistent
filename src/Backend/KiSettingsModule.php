@@ -369,6 +369,7 @@ class KiSettingsModule extends BackendModule
 
     private function passSettingsToTemplate(array $settings): void
     {
+        $this->Template->kiKundeKey = $settings['kundeKey'] ?? '';
         $this->Template->kiApiKey = $settings['apiKey'];
         $this->Template->kiEnabled = $settings['enabled'];
         $this->Template->kiColor = $settings['color'];
