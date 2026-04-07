@@ -385,17 +385,35 @@ class KiSettingsModule extends BackendModule
             }
         }
 
-        // Determine target directory. Contao stores files in <project>/files/
+        // Determine target directory. In Contao 5 the webroot is <project>/public/
+        // and 'files' is a directory there. In older setups it can be at project root.
         $container = System::getContainer();
         $projectDir = $container->getParameter('kernel.project_dir');
 
-        // Try Contao upload path parameter (since Contao 4.13+)
         $uploadPath = 'files';
         if ($container->hasParameter('contao.upload_path')) {
             $uploadPath = $container->getParameter('contao.upload_path');
         }
 
-        $uploadDir = $projectDir . '/' . $uploadPath . '/ki-assistent';
+        // Try public/<uploadPath> first (Contao 5), then <uploadPath> (older)
+        $candidates = [
+            $projectDir . '/public/' . $uploadPath . '/ki-assistent',
+            $projectDir . '/web/' . $uploadPath . '/ki-assistent',
+            $projectDir . '/' . $uploadPath . '/ki-assistent',
+        ];
+
+        $uploadDir = null;
+        foreach ($candidates as $candidate) {
+            $parent = dirname($candidate);
+            if (is_dir($parent) || is_dir(dirname($parent))) {
+                $uploadDir = $candidate;
+                break;
+            }
+        }
+
+        if ($uploadDir === null) {
+            $uploadDir = $candidates[0];
+        }
 
         if (!is_dir($uploadDir)) {
             if (!@mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
