@@ -17,7 +17,8 @@ class KiSettingsModule extends BackendModule
     /** Default widget settings */
     private const DEFAULTS = [
         'enabled' => false,
-        'apiKey' => '',
+        'kundeKey' => '',
+        'apiKey' => '', // siteKey - auto-set from portal init response
         'color' => '#10b981',
         'position' => 'bottom-right',
         'title' => 'KI Assistent',
@@ -70,16 +71,20 @@ class KiSettingsModule extends BackendModule
         $settings = $this->loadSettings();
 
         if (Input::post('FORM_SUBMIT') === 'ki_assistent_settings') {
-            // API Key
-            $apiKey = trim((string) Input::post('ki_api_key'));
-            $apiKey = html_entity_decode($apiKey, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            $apiKey = preg_replace('/\s+/', '', $apiKey);
+            // Kunde-Key (cak_) - global identifier from portal Settings page
+            $kundeKey = trim((string) Input::post('ki_kunde_key'));
+            $kundeKey = html_entity_decode($kundeKey, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $kundeKey = preg_replace('/\s+/', '', $kundeKey);
 
-            if ($apiKey !== '' && (!str_starts_with($apiKey, 'caki_') || strlen($apiKey) < 20)) {
-                $this->Template->message = '<div class="tl_error">Ungültiger API Key. Muss mit "caki_" beginnen.</div>';
+            if ($kundeKey !== '' && (!str_starts_with($kundeKey, 'cak_') || strlen($kundeKey) < 20)) {
+                $this->Template->message = '<div class="tl_error">Ungültiger Kunden-Key. Muss mit "cak_" beginnen.</div>';
                 $this->passSettingsToTemplate($settings);
                 return;
             }
+
+            // Site-Key wird automatisch vom Portal vergeben (caki_)
+            // Aktuellen behalten falls schon vorhanden
+            $apiKey = $settings['apiKey'] ?? '';
 
             // Enabled toggle
             $enabled = (bool) Input::post('ki_enabled');
@@ -167,6 +172,7 @@ class KiSettingsModule extends BackendModule
             // Save all settings
             $settings = [
                 'enabled' => $enabled,
+                'kundeKey' => $kundeKey,
                 'apiKey' => $apiKey,
                 'color' => $color,
                 'position' => $position,
@@ -187,25 +193,32 @@ class KiSettingsModule extends BackendModule
             ];
 
             try {
+                // Step 1: Init site at portal with kunde key → get site key back
+                $initResult = null;
+                if ($kundeKey !== '') {
+                    $initResult = $this->initSiteAtPortal($kundeKey);
+                    if (is_array($initResult) && !empty($initResult['siteKey'])) {
+                        $apiKey = $initResult['siteKey'];
+                        $settings['apiKey'] = $apiKey;
+                    }
+                }
+
                 Config::persist('kiAssistentApiKey', $apiKey);
                 Config::persist('kiAssistentSettings', json_encode($settings, JSON_THROW_ON_ERROR));
 
-                // Auto-register site at portal when API key is set
-                if ($apiKey !== '') {
-                    $registerResult = $this->registerSiteAtPortal($apiKey);
-
-                    // Send crawl page URLs to portal
-                    if (!empty($crawlPageIds)) {
-                        $this->sendCrawlPagesToPortal($apiKey, $crawlPageIds);
-                    }
+                // Send crawl page URLs to portal (uses site key)
+                if ($apiKey !== '' && !empty($crawlPageIds)) {
+                    $this->sendCrawlPagesToPortal($apiKey, $crawlPageIds);
                 }
 
                 $statusText = $enabled ? 'aktiviert' : 'deaktiviert';
                 $message = 'Einstellungen gespeichert! Widget ist ' . $statusText . '.';
-                if (isset($registerResult) && $registerResult === true) {
+                if (is_array($initResult) && !empty($initResult['siteKey'])) {
                     $message .= ' Seite wurde im Portal registriert.';
-                } elseif (isset($registerResult) && is_string($registerResult)) {
-                    $message .= ' <span style="color:#d97706">Portal-Registrierung: ' . htmlspecialchars($registerResult, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</span>';
+                } elseif (is_string($initResult)) {
+                    $message .= ' <span style="color:#d97706">Portal-Init fehlgeschlagen: ' . htmlspecialchars($initResult, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</span>';
+                } elseif ($kundeKey === '') {
+                    $message .= ' <span style="color:#d97706">Bitte tragen Sie den Kunden-Key aus dem Portal ein, damit die Webseite verbunden wird.</span>';
                 }
                 if ($uploadError !== null) {
                     $message .= ' <span style="color:#dc2626">Logo-Upload fehlgeschlagen: ' . htmlspecialchars($uploadError, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</span>';
@@ -227,9 +240,12 @@ class KiSettingsModule extends BackendModule
     }
 
     /**
-     * @return true|string true on success, error message on failure
+     * Init site at portal using the global Kunde-Key (cak_).
+     * Returns ['siteKey' => 'caki_...', 'siteId' => 123, ...] on success or string error message on failure.
+     *
+     * @return array|string
      */
-    private function registerSiteAtPortal(string $apiKey): true|string
+    private function initSiteAtPortal(string $kundeKey): array|string
     {
         try {
             $siteUrl = \Contao\Environment::get('url');
@@ -240,8 +256,11 @@ class KiSettingsModule extends BackendModule
                 return 'Seiten-URL konnte nicht ermittelt werden.';
             }
 
-            $payload = json_encode(['siteUrl' => $siteUrl], JSON_THROW_ON_ERROR);
-            $endpoint = 'https://portal.venne-software.de/contao-agent/api/ki/' . $apiKey . '/register-site';
+            $payload = json_encode([
+                'kundeKey' => $kundeKey,
+                'siteUrl' => $siteUrl,
+            ], JSON_THROW_ON_ERROR);
+            $endpoint = 'https://portal.venne-software.de/contao-agent/api/ki/init';
 
             $ch = curl_init($endpoint);
             curl_setopt_array($ch, [
@@ -264,14 +283,19 @@ class KiSettingsModule extends BackendModule
             }
 
             if ($httpCode === 404) {
-                return 'API Key nicht gefunden im Portal.';
+                return 'Kunden-Key nicht gefunden im Portal. Bitte prüfen Sie den Key.';
             }
 
             if ($httpCode !== 200) {
                 return 'Portal antwortet mit HTTP ' . $httpCode;
             }
 
-            return true;
+            $data = json_decode((string) $response, true);
+            if (!is_array($data) || empty($data['siteKey'])) {
+                return 'Portal antwortet ohne Site-Key.';
+            }
+
+            return $data;
         } catch (\Throwable $e) {
             return $e->getMessage();
         }
