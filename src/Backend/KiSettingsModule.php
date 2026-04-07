@@ -104,9 +104,22 @@ class KiSettingsModule extends BackendModule
                 $bubbleIcon = 'chat';
             }
 
-            // Logo URL - sanitize, only allow relative paths or http(s) URLs
+            // Logo: handle file upload OR existing URL
             $logoUrl = trim((string) Input::post('ki_logo_url'));
             if ($logoUrl !== '' && !preg_match('#^(https?://|/)#', $logoUrl)) {
+                $logoUrl = '';
+            }
+
+            // Check for uploaded file
+            if (!empty($_FILES['ki_logo_file']['tmp_name']) && empty($_FILES['ki_logo_file']['error'])) {
+                $uploaded = $this->handleLogoUpload($_FILES['ki_logo_file']);
+                if ($uploaded !== null) {
+                    $logoUrl = $uploaded;
+                }
+            }
+
+            // Remove logo if requested
+            if (Input::post('ki_logo_remove') === '1') {
                 $logoUrl = '';
             }
 
@@ -334,6 +347,53 @@ class KiSettingsModule extends BackendModule
 
         // Load page tree for the template
         $this->Template->pageTree = $this->loadPageTree();
+    }
+
+    /**
+     * Handle uploaded logo file. Stores in files/ki-assistent/ and returns the relative URL.
+     */
+    private function handleLogoUpload(array $file): ?string
+    {
+        $allowedMimes = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'];
+        $allowedExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'];
+
+        // Validate size (max 2 MB)
+        if ($file['size'] > 2 * 1024 * 1024) {
+            return null;
+        }
+
+        // Validate MIME type
+        $mime = mime_content_type($file['tmp_name']);
+        if (!in_array($mime, $allowedMimes, true)) {
+            return null;
+        }
+
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, $allowedExts, true)) {
+            return null;
+        }
+
+        // Determine target directory: <project root>/files/ki-assistent/
+        $projectDir = System::getContainer()->getParameter('kernel.project_dir');
+        $uploadDir = $projectDir . '/files/ki-assistent';
+
+        if (!is_dir($uploadDir)) {
+            if (!mkdir($uploadDir, 0775, true) && !is_dir($uploadDir)) {
+                return null;
+            }
+        }
+
+        // Unique filename
+        $filename = 'logo-' . time() . '-' . bin2hex(random_bytes(4)) . '.' . $ext;
+        $targetPath = $uploadDir . '/' . $filename;
+
+        if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+            return null;
+        }
+
+        @chmod($targetPath, 0664);
+
+        return '/files/ki-assistent/' . $filename;
     }
 
     private function normalizeTime(string $time): string

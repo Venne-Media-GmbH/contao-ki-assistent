@@ -38,11 +38,21 @@
         .ki-preview-bubble svg{width:22px;height:22px}
         .ki-preview-bubble img{width:100%;height:100%;object-fit:cover}
         .ki-preview-header{display:inline-flex;align-items:center;padding:10px 16px;border-radius:10px;color:#fff;font-weight:700;font-size:14px;margin-top:12px}
-        .ki-hours-grid{display:grid;grid-template-columns:auto auto auto auto;gap:10px 12px;align-items:center;max-width:520px}
-        .ki-hours-grid .day-label{font-size:13px;font-weight:600}
-        .ki-hours-grid .time-input{padding:6px 8px;border:1px solid rgba(128,128,128,.3);border-radius:6px;background:transparent;color:inherit;font-size:13px;width:90px;font-family:ui-monospace,monospace}
-        .ki-hours-grid .time-input:disabled{opacity:.35}
-        .ki-hours-grid .closed-label{font-size:12px;opacity:.6}
+        .ki-hours-list{display:flex;flex-direction:column;gap:8px;max-width:560px}
+        .ki-hours-row{display:flex;align-items:center;gap:14px;padding:8px 12px;border:1px solid rgba(128,128,128,.2);border-radius:8px;background:rgba(128,128,128,.04)}
+        .ki-hours-row .day-label{font-size:13px;font-weight:600;width:100px;flex-shrink:0}
+        .ki-hours-row .day-toggle{flex-shrink:0}
+        .ki-hours-row .time-spacer{flex:1}
+        .ki-hours-row .time-input{padding:6px 10px;border:1px solid rgba(128,128,128,.3);border-radius:6px;background:transparent;color:inherit;font-size:13px;width:100px;font-family:ui-monospace,monospace;text-align:center}
+        .ki-hours-row .time-input:disabled{opacity:.35;cursor:not-allowed}
+        .ki-hours-row .time-sep{font-size:13px;opacity:.5}
+        .ki-hours-row .status-text{font-size:12px;opacity:.55;width:60px;text-align:right}
+        .ki-mini-toggle{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0}
+        .ki-mini-toggle input{position:absolute;opacity:0;width:0;height:0}
+        .ki-mini-toggle .slider{position:absolute;inset:0;background:rgba(128,128,128,.4);border-radius:11px;transition:background .2s;cursor:pointer}
+        .ki-mini-toggle .slider::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+        .ki-mini-toggle input:checked+.slider{background:#10b981}
+        .ki-mini-toggle input:checked+.slider::after{transform:translateX(16px)}
         .ki-logo-row{display:flex;gap:8px;align-items:center}
         .ki-logo-preview{width:48px;height:48px;border-radius:10px;border:1px solid rgba(128,128,128,.3);background:rgba(128,128,128,.08);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
         .ki-logo-preview img{width:100%;height:100%;object-fit:cover}
@@ -54,7 +64,7 @@
             <div class="tl_tbox">
                 <?= $this->message ?>
 
-                <form method="post" action="<?= $this->action ?>">
+                <form method="post" action="<?= $this->action ?>" enctype="multipart/form-data">
                     <input type="hidden" name="FORM_SUBMIT" value="ki_assistent_settings">
                     <input type="hidden" name="REQUEST_TOKEN" value="<?= $this->requestToken ?>">
 
@@ -147,7 +157,7 @@
                                 <p class="help">Wird verwendet, wenn kein Logo gesetzt ist.</p>
                             </div>
                             <div class="ki-field">
-                                <label for="ki_logo_url">Logo / Avatar</label>
+                                <label>Logo / Avatar</label>
                                 <div class="ki-logo-row">
                                     <div class="ki-logo-preview" id="logo_preview">
                                         <?php if (!empty($this->kiLogoUrl)): ?>
@@ -156,12 +166,20 @@
                                             <span class="empty">kein Logo</span>
                                         <?php endif; ?>
                                     </div>
-                                    <input type="text" name="ki_logo_url" id="ki_logo_url" class="ki-input ki-input-mono"
-                                        value="<?= \Contao\StringUtil::specialchars($this->kiLogoUrl ?? '') ?>"
-                                        placeholder="/files/logo.png oder https://..."
-                                        oninput="updateLogoPreview();updatePreview()">
+                                    <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+                                        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                                            <label for="ki_logo_file" class="ki-btn ki-btn-sm" style="display:inline-block;cursor:pointer;margin:0">Bild hochladen</label>
+                                            <input type="file" name="ki_logo_file" id="ki_logo_file" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" style="display:none" onchange="onLogoFileSelected(this)">
+                                            <span id="ki_logo_file_name" style="font-size:12px;opacity:.6"></span>
+                                            <?php if (!empty($this->kiLogoUrl)): ?>
+                                                <button type="button" class="ki-btn ki-btn-sm" style="background:#ef4444" onclick="removeLogo()">Entfernen</button>
+                                            <?php endif; ?>
+                                        </div>
+                                        <input type="hidden" name="ki_logo_url" id="ki_logo_url" value="<?= \Contao\StringUtil::specialchars($this->kiLogoUrl ?? '') ?>">
+                                        <input type="hidden" name="ki_logo_remove" id="ki_logo_remove" value="0">
+                                    </div>
                                 </div>
-                                <p class="help">Pfad zu einem Bild im Contao-Dateimanager (z.B. <code>/files/logo.png</code>) oder eine externe URL. Wird im Chat-Header und im Bubble-Button angezeigt.</p>
+                                <p class="help">PNG, JPG, GIF, WebP oder SVG (max. 2 MB). Wird im Chat-Header, Bubble-Button und als Bot-Avatar angezeigt.</p>
                             </div>
                         </div>
 
@@ -219,21 +237,26 @@
 
                         <div class="ki-field">
                             <label>Wochenplan</label>
-                            <div class="ki-hours-grid">
+                            <div class="ki-hours-list">
                                 <?php foreach ($this->kiDays as $day):
                                     $dayData = $this->kiHours[$day] ?? ['open' => false, 'from' => '09:00', 'to' => '17:00'];
                                 ?>
-                                <div class="day-label"><?= $this->kiDayLabels[$day] ?></div>
-                                <label class="ki-toggle" style="gap:6px">
-                                    <input type="checkbox" name="ki_hours[<?= $day ?>][open]" value="1" <?= $dayData['open'] ? 'checked' : '' ?> onchange="toggleDayInputs('<?= $day ?>')">
-                                    <span class="slider"></span>
-                                </label>
-                                <input type="time" name="ki_hours[<?= $day ?>][from]" class="time-input" id="from_<?= $day ?>"
-                                    value="<?= \Contao\StringUtil::specialchars($dayData['from']) ?>"
-                                    <?= $dayData['open'] ? '' : 'disabled' ?>>
-                                <input type="time" name="ki_hours[<?= $day ?>][to]" class="time-input" id="to_<?= $day ?>"
-                                    value="<?= \Contao\StringUtil::specialchars($dayData['to']) ?>"
-                                    <?= $dayData['open'] ? '' : 'disabled' ?>>
+                                <div class="ki-hours-row">
+                                    <span class="day-label"><?= $this->kiDayLabels[$day] ?></span>
+                                    <label class="ki-mini-toggle">
+                                        <input type="checkbox" name="ki_hours[<?= $day ?>][open]" value="1" <?= $dayData['open'] ? 'checked' : '' ?> onchange="toggleDayInputs('<?= $day ?>')">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <input type="time" name="ki_hours[<?= $day ?>][from]" class="time-input" id="from_<?= $day ?>"
+                                        value="<?= \Contao\StringUtil::specialchars($dayData['from']) ?>"
+                                        <?= $dayData['open'] ? '' : 'disabled' ?>>
+                                    <span class="time-sep">–</span>
+                                    <input type="time" name="ki_hours[<?= $day ?>][to]" class="time-input" id="to_<?= $day ?>"
+                                        value="<?= \Contao\StringUtil::specialchars($dayData['to']) ?>"
+                                        <?= $dayData['open'] ? '' : 'disabled' ?>>
+                                    <span class="time-spacer"></span>
+                                    <span class="status-text" id="status_<?= $day ?>"><?= $dayData['open'] ? 'geöffnet' : 'geschlossen' ?></span>
+                                </div>
                                 <?php endforeach; ?>
                             </div>
                         </div>
@@ -335,14 +358,38 @@
         }
     }
 
+    function onLogoFileSelected(input) {
+        if (!input.files || !input.files[0]) return;
+        var file = input.files[0];
+        document.getElementById('ki_logo_file_name').textContent = file.name;
+        document.getElementById('ki_logo_remove').value = '0';
+        // Show local preview immediately
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('logo_preview').innerHTML = '<img src="' + e.target.result + '" alt="">';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeLogo() {
+        document.getElementById('ki_logo_url').value = '';
+        document.getElementById('ki_logo_remove').value = '1';
+        document.getElementById('ki_logo_file').value = '';
+        document.getElementById('ki_logo_file_name').textContent = '';
+        document.getElementById('logo_preview').innerHTML = '<span class="empty">kein Logo</span>';
+        updatePreview();
+    }
+
     function toggleHoursDisabled() {
-        // Visual hint only - actual server check uses hoursEnabled flag
+        // Visual only — server checks hoursEnabled flag
     }
 
     function toggleDayInputs(day) {
         var cb = document.querySelector('input[name="ki_hours[' + day + '][open]"]');
         document.getElementById('from_' + day).disabled = !cb.checked;
         document.getElementById('to_' + day).disabled = !cb.checked;
+        var status = document.getElementById('status_' + day);
+        if (status) status.textContent = cb.checked ? 'geöffnet' : 'geschlossen';
     }
 
     updatePreview();
