@@ -21,11 +21,26 @@ class KiSettingsModule extends BackendModule
         'color' => '#10b981',
         'position' => 'bottom-right',
         'title' => 'KI Assistent',
+        'subtitle' => 'Ihr digitaler Assistent',
         'welcomeMessage' => 'Hallo! Wie kann ich Ihnen helfen?',
         'bubbleIcon' => 'chat',
+        'logoUrl' => '',
         'customCss' => '',
         'crawlPageIds' => [],
+        'hoursEnabled' => false,
+        'offlineMessage' => 'Wir sind aktuell nicht erreichbar. Bitte versuchen Sie es später erneut.',
+        'hours' => [
+            'mon' => ['open' => true, 'from' => '09:00', 'to' => '17:00'],
+            'tue' => ['open' => true, 'from' => '09:00', 'to' => '17:00'],
+            'wed' => ['open' => true, 'from' => '09:00', 'to' => '17:00'],
+            'thu' => ['open' => true, 'from' => '09:00', 'to' => '17:00'],
+            'fri' => ['open' => true, 'from' => '09:00', 'to' => '17:00'],
+            'sat' => ['open' => false, 'from' => '09:00', 'to' => '17:00'],
+            'sun' => ['open' => false, 'from' => '09:00', 'to' => '17:00'],
+        ],
     ];
+
+    private const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
     public function __construct()
     {
@@ -65,9 +80,14 @@ class KiSettingsModule extends BackendModule
             // Enabled toggle
             $enabled = (bool) Input::post('ki_enabled');
 
-            // Design settings
+            // Design settings - color picker is the source of truth
             $color = trim((string) Input::post('ki_color'));
-            if (!preg_match('/^#[0-9a-fA-F]{6}$/', $color)) {
+            // Normalize: lowercase, ensure leading #
+            if ($color !== '' && $color[0] !== '#') {
+                $color = '#' . $color;
+            }
+            $color = strtolower($color);
+            if (!preg_match('/^#[0-9a-f]{6}$/', $color)) {
                 $color = self::DEFAULTS['color'];
             }
 
@@ -77,19 +97,39 @@ class KiSettingsModule extends BackendModule
             }
 
             $title = trim((string) Input::post('ki_title')) ?: self::DEFAULTS['title'];
+            $subtitle = trim((string) Input::post('ki_subtitle'));
             $welcomeMessage = trim((string) Input::post('ki_welcome_message')) ?: self::DEFAULTS['welcomeMessage'];
             $bubbleIcon = Input::post('ki_bubble_icon');
             if (!in_array($bubbleIcon, ['chat', 'sparkle', 'bot'], true)) {
                 $bubbleIcon = 'chat';
             }
 
+            // Logo URL - sanitize, only allow relative paths or http(s) URLs
+            $logoUrl = trim((string) Input::post('ki_logo_url'));
+            if ($logoUrl !== '' && !preg_match('#^(https?://|/)#', $logoUrl)) {
+                $logoUrl = '';
+            }
+
             $customCss = trim((string) Input::post('ki_custom_css'));
-            // Strip dangerous characters to prevent injection
             $customCss = str_replace(['{', '}', '<', '>', '"'], '', $customCss);
 
-            $customCss = str_replace(['{', '}', '<', '>', '"'], '', $customCss);
+            // Opening hours
+            $hoursEnabled = (bool) Input::post('ki_hours_enabled');
+            $offlineMessage = trim((string) Input::post('ki_offline_message')) ?: self::DEFAULTS['offlineMessage'];
 
-            // Crawl pages - selected page IDs from checkboxes
+            $hoursPost = Input::post('ki_hours');
+            $hours = self::DEFAULTS['hours'];
+            if (is_array($hoursPost)) {
+                foreach (self::DAYS as $day) {
+                    $dayData = $hoursPost[$day] ?? [];
+                    $open = !empty($dayData['open']);
+                    $from = $this->normalizeTime($dayData['from'] ?? '09:00');
+                    $to = $this->normalizeTime($dayData['to'] ?? '17:00');
+                    $hours[$day] = ['open' => $open, 'from' => $from, 'to' => $to];
+                }
+            }
+
+            // Crawl pages
             $selectedPages = Input::post('ki_crawl_pages');
             $crawlPageIds = is_array($selectedPages) ? array_map('intval', $selectedPages) : [];
 
@@ -100,10 +140,15 @@ class KiSettingsModule extends BackendModule
                 'color' => $color,
                 'position' => $position,
                 'title' => $title,
+                'subtitle' => $subtitle,
                 'welcomeMessage' => $welcomeMessage,
                 'bubbleIcon' => $bubbleIcon,
+                'logoUrl' => $logoUrl,
                 'customCss' => $customCss,
                 'crawlPageIds' => $crawlPageIds,
+                'hoursEnabled' => $hoursEnabled,
+                'offlineMessage' => $offlineMessage,
+                'hours' => $hours,
             ];
 
             try {
@@ -267,13 +312,39 @@ class KiSettingsModule extends BackendModule
         $this->Template->kiColor = $settings['color'];
         $this->Template->kiPosition = $settings['position'];
         $this->Template->kiTitle = $settings['title'];
+        $this->Template->kiSubtitle = $settings['subtitle'] ?? '';
         $this->Template->kiWelcomeMessage = $settings['welcomeMessage'];
         $this->Template->kiBubbleIcon = $settings['bubbleIcon'];
+        $this->Template->kiLogoUrl = $settings['logoUrl'] ?? '';
         $this->Template->kiCustomCss = $settings['customCss'] ?? '';
         $this->Template->kiCrawlPageIds = $settings['crawlPageIds'] ?? [];
+        $this->Template->kiHoursEnabled = $settings['hoursEnabled'] ?? false;
+        $this->Template->kiOfflineMessage = $settings['offlineMessage'] ?? self::DEFAULTS['offlineMessage'];
+        $this->Template->kiHours = $settings['hours'] ?? self::DEFAULTS['hours'];
+        $this->Template->kiDays = self::DAYS;
+        $this->Template->kiDayLabels = [
+            'mon' => 'Montag',
+            'tue' => 'Dienstag',
+            'wed' => 'Mittwoch',
+            'thu' => 'Donnerstag',
+            'fri' => 'Freitag',
+            'sat' => 'Samstag',
+            'sun' => 'Sonntag',
+        ];
 
         // Load page tree for the template
         $this->Template->pageTree = $this->loadPageTree();
+    }
+
+    private function normalizeTime(string $time): string
+    {
+        $time = trim($time);
+        if (preg_match('/^(\d{1,2}):(\d{2})$/', $time, $m)) {
+            $h = max(0, min(23, (int) $m[1]));
+            $min = max(0, min(59, (int) $m[2]));
+            return sprintf('%02d:%02d', $h, $min);
+        }
+        return '09:00';
     }
 
     /**

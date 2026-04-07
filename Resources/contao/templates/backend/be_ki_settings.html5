@@ -16,7 +16,7 @@
         .ki-row .ki-field{flex:1;min-width:200px}
         .ki-toggle{position:relative;display:inline-flex;align-items:center;cursor:pointer;gap:12px}
         .ki-toggle input{position:absolute;opacity:0;width:0;height:0}
-        .ki-toggle .slider{width:44px;height:24px;background:rgba(128,128,128,.4);border-radius:12px;transition:background .2s;position:relative}
+        .ki-toggle .slider{width:44px;height:24px;background:rgba(128,128,128,.4);border-radius:12px;transition:background .2s;position:relative;flex-shrink:0}
         .ki-toggle .slider::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
         .ki-toggle input:checked+.slider{background:#10b981}
         .ki-toggle input:checked+.slider::after{transform:translateX(20px)}
@@ -26,6 +26,7 @@
         .ki-color-picker{width:48px;height:36px;padding:2px;border:1px solid rgba(128,128,128,.3);border-radius:8px;cursor:pointer;background:transparent}
         .ki-btn{padding:10px 24px;background:#10b981;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s}
         .ki-btn:hover{background:#059669}
+        .ki-btn-sm{padding:6px 12px;font-size:12px}
         .ki-status{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
         .ki-status.on{background:rgba(16,185,129,.15);color:#34d399}
         .ki-status.off{background:rgba(239,68,68,.15);color:#f87171}
@@ -33,9 +34,19 @@
         .ki-status.on .dot{background:#10b981}
         .ki-status.off .dot{background:#ef4444}
         .ki-preview{border:1px solid rgba(128,128,128,.25);border-radius:12px;padding:16px;background:rgba(128,128,128,.08);margin-top:16px}
-        .ki-preview-bubble{width:48px;height:48px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+        .ki-preview-bubble{width:48px;height:48px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15);overflow:hidden}
         .ki-preview-bubble svg{width:22px;height:22px}
+        .ki-preview-bubble img{width:100%;height:100%;object-fit:cover}
         .ki-preview-header{display:inline-flex;align-items:center;padding:10px 16px;border-radius:10px;color:#fff;font-weight:700;font-size:14px;margin-top:12px}
+        .ki-hours-grid{display:grid;grid-template-columns:auto auto auto auto;gap:10px 12px;align-items:center;max-width:520px}
+        .ki-hours-grid .day-label{font-size:13px;font-weight:600}
+        .ki-hours-grid .time-input{padding:6px 8px;border:1px solid rgba(128,128,128,.3);border-radius:6px;background:transparent;color:inherit;font-size:13px;width:90px;font-family:ui-monospace,monospace}
+        .ki-hours-grid .time-input:disabled{opacity:.35}
+        .ki-hours-grid .closed-label{font-size:12px;opacity:.6}
+        .ki-logo-row{display:flex;gap:8px;align-items:center}
+        .ki-logo-preview{width:48px;height:48px;border-radius:10px;border:1px solid rgba(128,128,128,.3);background:rgba(128,128,128,.08);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+        .ki-logo-preview img{width:100%;height:100%;object-fit:cover}
+        .ki-logo-preview .empty{font-size:10px;opacity:.4}
     </style>
 
     <div class="tl_listing_container">
@@ -91,14 +102,15 @@
                             <div class="ki-field">
                                 <label for="ki_color">Widget-Farbe</label>
                                 <div class="ki-color-row">
-                                    <input type="color" id="ki_color_picker" class="ki-color-picker"
-                                        value="<?= \Contao\StringUtil::specialchars($this->kiColor ?? '#10b981') ?>"
-                                        oninput="document.getElementById('ki_color').value=this.value;updatePreview()">
-                                    <input type="text" name="ki_color" id="ki_color" class="ki-input ki-input-mono" style="max-width:120px"
-                                        value="<?= \Contao\StringUtil::specialchars($this->kiColor ?? '#10b981') ?>"
+                                    <input type="color" name="ki_color" id="ki_color" class="ki-color-picker"
+                                        value="<?= \Contao\StringUtil::specialchars($this->kiColor ?: '#10b981') ?>"
+                                        oninput="document.getElementById('ki_color_text').value=this.value;updatePreview()">
+                                    <input type="text" id="ki_color_text" class="ki-input ki-input-mono" style="max-width:120px"
+                                        value="<?= \Contao\StringUtil::specialchars($this->kiColor ?: '#10b981') ?>"
                                         pattern="^#[0-9a-fA-F]{6}$" placeholder="#10b981"
-                                        oninput="document.getElementById('ki_color_picker').value=this.value;updatePreview()">
+                                        oninput="if(/^#[0-9a-fA-F]{6}$/.test(this.value)){document.getElementById('ki_color').value=this.value;updatePreview()}">
                                 </div>
+                                <p class="help">Die Farbe wird beim Speichern aus dem Color-Picker übernommen.</p>
                             </div>
                             <div class="ki-field">
                                 <label for="ki_position">Position</label>
@@ -117,12 +129,39 @@
                                     placeholder="KI Assistent" oninput="updatePreview()">
                             </div>
                             <div class="ki-field">
-                                <label for="ki_bubble_icon">Button-Symbol</label>
+                                <label for="ki_subtitle">Untertitel</label>
+                                <input type="text" name="ki_subtitle" id="ki_subtitle" class="ki-input"
+                                    value="<?= \Contao\StringUtil::specialchars($this->kiSubtitle ?? '') ?>"
+                                    placeholder="Ihr digitaler Assistent">
+                            </div>
+                        </div>
+
+                        <div class="ki-row">
+                            <div class="ki-field">
+                                <label for="ki_bubble_icon">Button-Symbol (Fallback)</label>
                                 <select name="ki_bubble_icon" id="ki_bubble_icon" class="ki-select" onchange="updatePreview()">
                                     <option value="chat" <?= ($this->kiBubbleIcon ?? '') === 'chat' ? 'selected' : '' ?>>Chat-Blase</option>
                                     <option value="sparkle" <?= ($this->kiBubbleIcon ?? '') === 'sparkle' ? 'selected' : '' ?>>Sparkle / KI</option>
                                     <option value="bot" <?= ($this->kiBubbleIcon ?? '') === 'bot' ? 'selected' : '' ?>>Roboter</option>
                                 </select>
+                                <p class="help">Wird verwendet, wenn kein Logo gesetzt ist.</p>
+                            </div>
+                            <div class="ki-field">
+                                <label for="ki_logo_url">Logo / Avatar</label>
+                                <div class="ki-logo-row">
+                                    <div class="ki-logo-preview" id="logo_preview">
+                                        <?php if (!empty($this->kiLogoUrl)): ?>
+                                            <img src="<?= \Contao\StringUtil::specialchars($this->kiLogoUrl) ?>" alt="">
+                                        <?php else: ?>
+                                            <span class="empty">kein Logo</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <input type="text" name="ki_logo_url" id="ki_logo_url" class="ki-input ki-input-mono"
+                                        value="<?= \Contao\StringUtil::specialchars($this->kiLogoUrl ?? '') ?>"
+                                        placeholder="/files/logo.png oder https://..."
+                                        oninput="updateLogoPreview();updatePreview()">
+                                </div>
+                                <p class="help">Pfad zu einem Bild im Contao-Dateimanager (z.B. <code>/files/logo.png</code>) oder eine externe URL. Wird im Chat-Header und im Bubble-Button angezeigt.</p>
                             </div>
                         </div>
 
@@ -146,6 +185,11 @@
                             <p style="font-size:12px;font-weight:600;color:#6b7280;margin:0 0 12px">Vorschau</p>
                             <div style="display:flex;align-items:center;gap:16px">
                                 <div class="ki-preview-bubble" id="preview_bubble">
+                                    <?php if (!empty($this->kiLogoUrl)): ?>
+                                        <img id="preview_logo_img" src="<?= \Contao\StringUtil::specialchars($this->kiLogoUrl) ?>" alt="">
+                                    <?php else: ?>
+                                        <img id="preview_logo_img" style="display:none" alt="">
+                                    <?php endif; ?>
                                     <svg id="icon_chat" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 20.105V4.125A1.875 1.875 0 015.625 2.25h12.75A1.875 1.875 0 0120.25 4.125v11.25a1.875 1.875 0 01-1.875 1.875H7.875L3.75 20.105z"/></svg>
                                     <svg id="icon_sparkle" style="display:none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg>
                                     <svg id="icon_bot" style="display:none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z"/></svg>
@@ -154,6 +198,52 @@
                                     <span id="preview_title">KI Assistent</span>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Öffnungszeiten -->
+                    <div class="ki-card">
+                        <h3>Verfügbarkeit / Öffnungszeiten</h3>
+                        <p class="desc">Legen Sie fest, wann der KI-Assistent erreichbar ist. Außerhalb dieser Zeiten wird eine Offline-Nachricht angezeigt.</p>
+
+                        <div class="ki-field">
+                            <label class="ki-toggle">
+                                <input type="checkbox" name="ki_hours_enabled" value="1" id="ki_hours_enabled" <?= $this->kiHoursEnabled ? 'checked' : '' ?> onchange="toggleHoursDisabled()">
+                                <span class="slider"></span>
+                                <span>
+                                    <span class="label">Öffnungszeiten aktivieren</span><br>
+                                    <span class="sublabel">Wenn aktiv, ist der Chat nur innerhalb der unten definierten Zeiten verfügbar</span>
+                                </span>
+                            </label>
+                        </div>
+
+                        <div class="ki-field">
+                            <label>Wochenplan</label>
+                            <div class="ki-hours-grid">
+                                <?php foreach ($this->kiDays as $day):
+                                    $dayData = $this->kiHours[$day] ?? ['open' => false, 'from' => '09:00', 'to' => '17:00'];
+                                ?>
+                                <div class="day-label"><?= $this->kiDayLabels[$day] ?></div>
+                                <label class="ki-toggle" style="gap:6px">
+                                    <input type="checkbox" name="ki_hours[<?= $day ?>][open]" value="1" <?= $dayData['open'] ? 'checked' : '' ?> onchange="toggleDayInputs('<?= $day ?>')">
+                                    <span class="slider"></span>
+                                </label>
+                                <input type="time" name="ki_hours[<?= $day ?>][from]" class="time-input" id="from_<?= $day ?>"
+                                    value="<?= \Contao\StringUtil::specialchars($dayData['from']) ?>"
+                                    <?= $dayData['open'] ? '' : 'disabled' ?>>
+                                <input type="time" name="ki_hours[<?= $day ?>][to]" class="time-input" id="to_<?= $day ?>"
+                                    value="<?= \Contao\StringUtil::specialchars($dayData['to']) ?>"
+                                    <?= $dayData['open'] ? '' : 'disabled' ?>>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <div class="ki-field">
+                            <label for="ki_offline_message">Offline-Nachricht</label>
+                            <input type="text" name="ki_offline_message" id="ki_offline_message" class="ki-input" style="max-width:100%"
+                                value="<?= \Contao\StringUtil::specialchars($this->kiOfflineMessage ?? '') ?>"
+                                placeholder="Wir sind aktuell nicht erreichbar...">
+                            <p class="help">Diese Nachricht wird angezeigt, wenn ein Besucher den Chat außerhalb der Öffnungszeiten öffnet.</p>
                         </div>
                     </div>
 
@@ -196,7 +286,7 @@
                                     </label>
                                     <?php endforeach; ?>
                                 </div>
-                                <p class="help" style="margin-top:8px">Ausgewählte Seiten werden beim nächsten Indizieren gecrawlt und in die KI-Wissensbasis aufgenommen. Unveröffentlichte Seiten werden ausgegraut angezeigt.</p>
+                                <p class="help" style="margin-top:8px">Ausgewählte Seiten werden beim nächsten Indizieren gecrawlt und in die KI-Wissensbasis aufgenommen.</p>
                             <?php else: ?>
                                 <p style="font-size:13px;opacity:.6">Kein Seitenbaum verfügbar. Stellen Sie sicher, dass mindestens eine Root-Seite existiert.</p>
                             <?php endif; ?>
@@ -216,14 +306,44 @@
         var color = document.getElementById('ki_color').value || '#10b981';
         var icon = document.getElementById('ki_bubble_icon').value;
         var title = document.getElementById('ki_title').value || 'KI Assistent';
+        var logoUrl = document.getElementById('ki_logo_url').value;
 
         document.getElementById('preview_bubble').style.background = color;
-        document.getElementById('preview_header').style.background = 'linear-gradient(145deg,' + color + ',#1f2937)';
+        document.getElementById('preview_header').style.background = color;
         document.getElementById('preview_title').textContent = title;
 
+        var logoImg = document.getElementById('preview_logo_img');
+        var hasLogo = logoUrl && logoUrl.trim() !== '';
         ['chat','sparkle','bot'].forEach(function(i) {
-            document.getElementById('icon_' + i).style.display = (i === icon) ? '' : 'none';
+            document.getElementById('icon_' + i).style.display = (!hasLogo && i === icon) ? '' : 'none';
         });
+        if (hasLogo) {
+            logoImg.src = logoUrl;
+            logoImg.style.display = '';
+        } else {
+            logoImg.style.display = 'none';
+        }
     }
+
+    function updateLogoPreview() {
+        var url = document.getElementById('ki_logo_url').value.trim();
+        var box = document.getElementById('logo_preview');
+        if (url) {
+            box.innerHTML = '<img src="' + url.replace(/"/g,'') + '" alt="">';
+        } else {
+            box.innerHTML = '<span class="empty">kein Logo</span>';
+        }
+    }
+
+    function toggleHoursDisabled() {
+        // Visual hint only - actual server check uses hoursEnabled flag
+    }
+
+    function toggleDayInputs(day) {
+        var cb = document.querySelector('input[name="ki_hours[' + day + '][open]"]');
+        document.getElementById('from_' + day).disabled = !cb.checked;
+        document.getElementById('to_' + day).disabled = !cb.checked;
+    }
+
     updatePreview();
     </script>
