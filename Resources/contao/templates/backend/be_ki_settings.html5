@@ -14,12 +14,12 @@
         .ki-select option{background:#1a1a2e;color:#e0e0e0}
         .ki-row{display:flex;gap:16px;flex-wrap:wrap}
         .ki-row .ki-field{flex:1;min-width:200px}
-        .ki-toggle{position:relative;display:inline-flex;align-items:center;cursor:pointer;gap:12px}
-        .ki-toggle input{position:absolute;opacity:0;width:0;height:0}
-        .ki-toggle .slider{width:44px;height:24px;background:rgba(128,128,128,.4);border-radius:12px;transition:background .2s;position:relative;flex-shrink:0}
-        .ki-toggle .slider::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-        .ki-toggle input:checked+.slider{background:#10b981}
-        .ki-toggle input:checked+.slider::after{transform:translateX(20px)}
+        .ki-toggle{position:relative;display:inline-flex!important;align-items:center;cursor:pointer;gap:12px}
+        .ki-toggle input[type=checkbox]{position:absolute!important;opacity:0!important;width:0!important;height:0!important;margin:0!important;padding:0!important;pointer-events:none!important;appearance:none!important;-webkit-appearance:none!important}
+        .ki-toggle .slider{display:inline-block!important;width:44px!important;height:24px!important;background:rgba(128,128,128,.4)!important;border-radius:12px!important;transition:background .2s;position:relative!important;flex-shrink:0!important}
+        .ki-toggle .slider::after{content:''!important;position:absolute!important;top:2px!important;left:2px!important;width:20px!important;height:20px!important;background:#fff!important;border-radius:50%!important;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)!important}
+        .ki-toggle input[type=checkbox]:checked+.slider{background:#10b981!important}
+        .ki-toggle input[type=checkbox]:checked+.slider::after{transform:translateX(20px)!important}
         .ki-toggle .label{font-size:14px;font-weight:600}
         .ki-toggle .sublabel{font-size:12px;opacity:.6;font-weight:400}
         .ki-color-row{display:flex;align-items:center;gap:10px}
@@ -47,12 +47,12 @@
         .ki-hours-row .time-input:disabled{opacity:.35;cursor:not-allowed}
         .ki-hours-row .time-sep{font-size:13px;opacity:.5}
         .ki-hours-row .status-text{font-size:12px;opacity:.55;width:60px;text-align:right}
-        .ki-mini-toggle{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0}
-        .ki-mini-toggle input{position:absolute;opacity:0;width:0;height:0}
-        .ki-mini-toggle .slider{position:absolute;inset:0;background:rgba(128,128,128,.4);border-radius:11px;transition:background .2s;cursor:pointer}
-        .ki-mini-toggle .slider::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
-        .ki-mini-toggle input:checked+.slider{background:#10b981}
-        .ki-mini-toggle input:checked+.slider::after{transform:translateX(16px)}
+        .ki-mini-toggle{position:relative!important;display:inline-block!important;width:38px!important;height:22px!important;flex-shrink:0!important;vertical-align:middle}
+        .ki-mini-toggle input[type=checkbox]{position:absolute!important;opacity:0!important;width:0!important;height:0!important;margin:0!important;padding:0!important;pointer-events:none!important;appearance:none!important;-webkit-appearance:none!important}
+        .ki-mini-toggle .slider{position:absolute!important;inset:0!important;background:rgba(128,128,128,.4)!important;border-radius:11px!important;transition:background .2s;cursor:pointer;display:block!important}
+        .ki-mini-toggle .slider::after{content:''!important;position:absolute!important;top:2px!important;left:2px!important;width:18px!important;height:18px!important;background:#fff!important;border-radius:50%!important;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)!important}
+        .ki-mini-toggle input[type=checkbox]:checked+.slider{background:#10b981!important}
+        .ki-mini-toggle input[type=checkbox]:checked+.slider::after{transform:translateX(16px)!important}
         .ki-logo-row{display:flex;gap:8px;align-items:center}
         .ki-logo-preview{width:48px;height:48px;border-radius:10px;border:1px solid rgba(128,128,128,.3);background:rgba(128,128,128,.08);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
         .ki-logo-preview img{width:100%;height:100%;object-fit:cover}
