@@ -89,6 +89,11 @@ class KiWidgetInjectorListener
         $isOffline = $this->isOutsideBusinessHours($settings);
         $offlineMessage = $settings['offlineMessage'] ?? 'Wir sind aktuell nicht erreichbar.';
 
+        $consentEnabled = (bool) ($settings['consentEnabled'] ?? true);
+        $consentTitle = $settings['consentTitle'] ?? 'Datenschutzhinweis';
+        $consentText = $settings['consentText'] ?? '';
+        $consentPrivacyUrl = $settings['consentPrivacyUrl'] ?? '';
+
         $apiUrl = self::API_BASE . '/' . $apiKey;
         $widget = $this->buildWidgetHtml(
             apiUrl: $apiUrl,
@@ -103,6 +108,10 @@ class KiWidgetInjectorListener
             customCss: $customCss,
             isOffline: $isOffline,
             offlineMessage: $offlineMessage,
+            consentEnabled: $consentEnabled,
+            consentTitle: $consentTitle,
+            consentText: $consentText,
+            consentPrivacyUrl: $consentPrivacyUrl,
         );
 
         $content = str_replace('</body>', $widget . "\n</body>", $content);
@@ -163,6 +172,10 @@ class KiWidgetInjectorListener
         string $customCss,
         bool $isOffline,
         string $offlineMessage,
+        bool $consentEnabled,
+        string $consentTitle,
+        string $consentText,
+        string $consentPrivacyUrl,
     ): string {
         $apiUrlJs = addslashes($apiUrl);
         $apiKeyJs = addslashes($apiKey);
@@ -172,6 +185,13 @@ class KiWidgetInjectorListener
         $offlineJs = addslashes(htmlspecialchars($offlineMessage, ENT_QUOTES, 'UTF-8'));
         $colorCss = htmlspecialchars($color, ENT_QUOTES, 'UTF-8');
         $logoUrlHtml = htmlspecialchars($logoUrl, ENT_QUOTES, 'UTF-8');
+        $consentTitleHtml = htmlspecialchars($consentTitle, ENT_QUOTES, 'UTF-8');
+        $consentTextHtml = nl2br(htmlspecialchars($consentText, ENT_QUOTES, 'UTF-8'));
+        $consentPrivacyUrlHtml = htmlspecialchars($consentPrivacyUrl, ENT_QUOTES, 'UTF-8');
+        $consentFlag = $consentEnabled ? 'true' : 'false';
+        $consentPrivacyLink = $consentPrivacyUrl !== ''
+            ? '<a href="' . $consentPrivacyUrlHtml . '" target="_blank" rel="noopener" class="ca-ki-consent-link">Vollständige Datenschutzerklärung</a>'
+            : '';
 
         $isLeft = $position === 'bottom-left';
         $posRight = $isLeft ? 'auto' : '24px';
@@ -259,14 +279,26 @@ class KiWidgetInjectorListener
 #ca-ki-input:focus{border-color:__COLOR__;background:#fff;box-shadow:0 0 0 4px __COLOR__15}
 #ca-ki-input::placeholder{color:#9ca3af}
 #ca-ki-input:disabled{background:#f3f4f6;cursor:not-allowed}
-#ca-ki-send{width:44px;height:44px;min-width:44px;min-height:44px;border-radius:50%;background:__COLOR__;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 12px -2px __COLOR__50}
+#ca-ki-send{width:44px;height:44px;min-width:44px;min-height:44px;border-radius:50%;background:__COLOR__;color:#fff!important;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 12px -2px __COLOR__50;font-size:22px;line-height:1;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:400;text-align:center}
 #ca-ki-send:hover{transform:translateY(-1px);box-shadow:0 6px 16px -2px __COLOR__60}
 #ca-ki-send:active{transform:scale(.95)}
 #ca-ki-send:disabled{background:#d1d5db;cursor:not-allowed;box-shadow:none;transform:none}
-#ca-ki-send svg{width:20px;height:20px;display:block}
 #ca-ki-footer{padding:8px 14px 10px;text-align:center;flex-shrink:0;background:#fff;border-top:1px solid #f3f4f6}
 #ca-ki-footer a{font-size:11px;color:#9ca3af;text-decoration:none;letter-spacing:.02em;font-weight:500}
 #ca-ki-footer a:hover{color:__COLOR__}
+#ca-ki-consent{position:absolute;inset:0;top:74px;background:#fff;z-index:5;padding:24px 22px;display:none;flex-direction:column;overflow-y:auto;animation:ca-ki-fade .2s ease}
+#ca-ki-consent.show{display:flex}
+#ca-ki-consent .icon-wrap{width:56px;height:56px;border-radius:16px;background:__COLOR__15;display:flex;align-items:center;justify-content:center;margin-bottom:14px;align-self:flex-start}
+#ca-ki-consent .icon-wrap svg{width:28px;height:28px;color:__COLOR__}
+#ca-ki-consent h4{margin:0 0 10px;font-size:17px;font-weight:700;color:#1f2937;letter-spacing:-.01em}
+#ca-ki-consent .text{font-size:13.5px;line-height:1.6;color:#4b5563;margin:0 0 14px;flex:1}
+.ca-ki-consent-link{display:inline-block;font-size:12.5px;color:__COLOR__;text-decoration:underline;text-underline-offset:2px;margin-bottom:16px}
+.ca-ki-consent-actions{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:8px;border-top:1px solid #f3f4f6}
+.ca-ki-consent-btn{padding:13px 18px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .15s}
+.ca-ki-consent-btn-accept{background:__COLOR__;color:#fff;box-shadow:0 4px 12px -2px __COLOR__50}
+.ca-ki-consent-btn-accept:hover{transform:translateY(-1px);box-shadow:0 6px 16px -2px __COLOR__60}
+.ca-ki-consent-btn-decline{background:#f3f4f6;color:#6b7280}
+.ca-ki-consent-btn-decline:hover{background:#e5e7eb}
 @media(max-width:640px){#ca-ki-panel{bottom:0;right:0;left:0;width:100vw;max-width:100vw;height:100vh;max-height:100vh;border-radius:0}#ca-ki-bubble{bottom:20px;right:20px}}
 </style>
 <button id="ca-ki-bubble" title="Chat öffnen" type="button">__BUBBLE_INNER__</button>
@@ -281,10 +313,20 @@ class KiWidgetInjectorListener
     </div>
     <button id="ca-ki-close" title="Schließen" type="button"><svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
   </div>
+  <div id="ca-ki-consent">
+    <div class="icon-wrap"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z"/></svg></div>
+    <h4>__CONSENT_TITLE__</h4>
+    <div class="text">__CONSENT_TEXT__</div>
+    __CONSENT_PRIVACY_LINK__
+    <div class="ca-ki-consent-actions">
+      <button type="button" class="ca-ki-consent-btn ca-ki-consent-btn-accept" id="ca-ki-consent-accept">Akzeptieren &amp; Chat starten</button>
+      <button type="button" class="ca-ki-consent-btn ca-ki-consent-btn-decline" id="ca-ki-consent-decline">Ablehnen</button>
+    </div>
+  </div>
   <div id="ca-ki-msgs"></div>
   <div id="ca-ki-input-area">
     <textarea id="ca-ki-input" rows="1" placeholder="Nachricht eingeben..." maxlength="5000"></textarea>
-    <button id="ca-ki-send" title="Senden" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg></button>
+    <button id="ca-ki-send" title="Senden" type="button" aria-label="Senden">&#10148;</button>
   </div>
   <div id="ca-ki-footer"><a href="https://venne-media.de" target="_blank" rel="noopener">Powered by Venne Media</a></div>
 </div>
@@ -292,12 +334,15 @@ class KiWidgetInjectorListener
 (function(){
 var API='__API_URL__',KEY='__API_KEY__';
 var IS_OFFLINE=__OFFLINE_FLAG__,OFFLINE_MSG='__OFFLINE_MSG__',WELCOME='__WELCOME__';
+var CONSENT_REQUIRED=__CONSENT_FLAG__;
 var LOGO_URL='__LOGO_URL__';
-var SK='ca_ki_s_'+KEY,VK='ca_ki_v_'+KEY;
+var SK='ca_ki_s_'+KEY,VK='ca_ki_v_'+KEY,CK='ca_ki_consent_'+KEY;
 var st=localStorage.getItem(SK)||null;
 var vid=localStorage.getItem(VK);
 if(!vid){vid='v_'+Math.random().toString(36).substr(2)+Date.now().toString(36);localStorage.setItem(VK,vid)}
+var hasConsent=!CONSENT_REQUIRED||localStorage.getItem(CK)==='1';
 var bubble=document.getElementById('ca-ki-bubble'),panel=document.getElementById('ca-ki-panel'),msgs=document.getElementById('ca-ki-msgs'),input=document.getElementById('ca-ki-input'),sendBtn=document.getElementById('ca-ki-send'),closeBtn=document.getElementById('ca-ki-close');
+var consentBox=document.getElementById('ca-ki-consent'),acceptBtn=document.getElementById('ca-ki-consent-accept'),declineBtn=document.getElementById('ca-ki-consent-decline');
 var isOpen=false,welcomed=false,sending=false,curBot=null,curTxt='';
 
 function botAvatarHtml(){
@@ -305,22 +350,46 @@ function botAvatarHtml(){
   return '\x3csvg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">\x3cpath stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/>\x3c/svg>'
 }
 
+function startChat(){
+  welcomed=true;
+  if(IS_OFFLINE){
+    addMsg('bot',OFFLINE_MSG);
+    input.disabled=true;sendBtn.disabled=true;
+    input.placeholder='Aktuell nicht verfügbar';
+  }else{
+    addMsg('bot',WELCOME);
+    loadConfig();
+  }
+}
+
 function toggle(){
   isOpen=!isOpen;panel.classList.toggle('open',isOpen);
-  if(isOpen&&!welcomed){
-    welcomed=true;
-    if(IS_OFFLINE){
-      addMsg('bot',OFFLINE_MSG);
+  if(isOpen){
+    if(CONSENT_REQUIRED&&!hasConsent){
+      consentBox.classList.add('show');
       input.disabled=true;sendBtn.disabled=true;
-      input.placeholder='Aktuell nicht verfügbar';
-    }else{
-      addMsg('bot',WELCOME);
-      loadConfig();
+    }else if(!welcomed){
+      startChat();
     }
   }
 }
 bubble.onclick=toggle;
 closeBtn.onclick=function(){isOpen=false;panel.classList.remove('open')};
+
+if(acceptBtn){
+  acceptBtn.onclick=function(){
+    localStorage.setItem(CK,'1');hasConsent=true;
+    consentBox.classList.remove('show');
+    if(!IS_OFFLINE){input.disabled=false;sendBtn.disabled=false}
+    if(!welcomed)startChat();
+  };
+}
+if(declineBtn){
+  declineBtn.onclick=function(){
+    consentBox.classList.remove('show');
+    isOpen=false;panel.classList.remove('open');
+  };
+}
 
 function addMsg(role,text){
   var wrap=document.createElement('div');
@@ -411,8 +480,8 @@ input.addEventListener('input',function(){this.style.height='auto';this.style.he
 WIDGET;
 
         return str_replace(
-            ['__API_URL__', '__API_KEY__', '__COLOR__', '__POS_RIGHT__', '__POS_LEFT__', '__PANEL_RIGHT__', '__PANEL_LEFT__', '__BUBBLE_INNER__', '__HEADER_ICON__', '__TITLE__', '__SUBTITLE__', '__STATUS_CLASS__', '__WELCOME__', '__OFFLINE_MSG__', '__OFFLINE_FLAG__', '__LOGO_URL__', '__CUSTOM_CSS__'],
-            [$apiUrlJs, $apiKeyJs, $colorCss, $posRight, $posLeft, $panelRight, $panelLeft, $bubbleInner, $headerIconInner, $titleHtml, $subtitleHtml, $isOffline ? 'offline' : '', $welcomeJs, $offlineJs, $offlineFlag, addslashes($logoUrlHtml), $customCssClean],
+            ['__API_URL__', '__API_KEY__', '__COLOR__', '__POS_RIGHT__', '__POS_LEFT__', '__PANEL_RIGHT__', '__PANEL_LEFT__', '__BUBBLE_INNER__', '__HEADER_ICON__', '__TITLE__', '__SUBTITLE__', '__STATUS_CLASS__', '__WELCOME__', '__OFFLINE_MSG__', '__OFFLINE_FLAG__', '__LOGO_URL__', '__CUSTOM_CSS__', '__CONSENT_TITLE__', '__CONSENT_TEXT__', '__CONSENT_PRIVACY_LINK__', '__CONSENT_FLAG__'],
+            [$apiUrlJs, $apiKeyJs, $colorCss, $posRight, $posLeft, $panelRight, $panelLeft, $bubbleInner, $headerIconInner, $titleHtml, $subtitleHtml, $isOffline ? 'offline' : '', $welcomeJs, $offlineJs, $offlineFlag, addslashes($logoUrlHtml), $customCssClean, $consentTitleHtml, $consentTextHtml, $consentPrivacyLink, $consentFlag],
             $template,
         );
     }

@@ -270,6 +270,44 @@
                         </div>
                     </div>
 
+                    <!-- Datenschutz / Consent -->
+                    <div class="ki-card">
+                        <h3>Datenschutz / DSGVO-Hinweis</h3>
+                        <p class="desc">Zeigt vor der ersten Chat-Nutzung einen Datenschutzhinweis an, den der Besucher akzeptieren muss.</p>
+
+                        <div class="ki-field">
+                            <label class="ki-toggle">
+                                <input type="checkbox" name="ki_consent_enabled" value="1" <?= $this->kiConsentEnabled ? 'checked' : '' ?>>
+                                <span class="slider"></span>
+                                <span>
+                                    <span class="label">Datenschutzhinweis aktivieren</span><br>
+                                    <span class="sublabel">Empfohlen für DSGVO-Konformität — Besucher müssen vor Chat-Nutzung zustimmen</span>
+                                </span>
+                            </label>
+                        </div>
+
+                        <div class="ki-field">
+                            <label for="ki_consent_title">Überschrift</label>
+                            <input type="text" name="ki_consent_title" id="ki_consent_title" class="ki-input"
+                                value="<?= \Contao\StringUtil::specialchars($this->kiConsentTitle ?? '') ?>"
+                                placeholder="Datenschutzhinweis">
+                        </div>
+
+                        <div class="ki-field">
+                            <label for="ki_consent_text">Hinweistext</label>
+                            <textarea name="ki_consent_text" id="ki_consent_text" class="ki-input" rows="6" style="max-width:100%;font-family:inherit;line-height:1.5"><?= \Contao\StringUtil::specialchars($this->kiConsentText ?? '') ?></textarea>
+                            <p class="help">Wird vor der ersten Chat-Nutzung angezeigt. Der Besucher muss diesen Text akzeptieren, bevor er chatten kann.</p>
+                        </div>
+
+                        <div class="ki-field">
+                            <label for="ki_consent_privacy_url">Link zur Datenschutzerklärung (optional)</label>
+                            <input type="text" name="ki_consent_privacy_url" id="ki_consent_privacy_url" class="ki-input"
+                                value="<?= \Contao\StringUtil::specialchars($this->kiConsentPrivacyUrl ?? '') ?>"
+                                placeholder="/datenschutz oder https://...">
+                            <p class="help">Wenn gesetzt, wird ein Link "Vollständige Datenschutzerklärung" im Consent-Dialog angezeigt.</p>
+                        </div>
+                    </div>
+
                     <!-- Seitenbaum für Crawling -->
                     <div class="ki-card">
                         <h3>Seiten für KI-Wissensbasis</h3>

@@ -38,6 +38,10 @@ class KiSettingsModule extends BackendModule
             'sat' => ['open' => false, 'from' => '09:00', 'to' => '17:00'],
             'sun' => ['open' => false, 'from' => '09:00', 'to' => '17:00'],
         ],
+        'consentEnabled' => true,
+        'consentTitle' => 'Datenschutzhinweis',
+        'consentText' => 'Dieser Chat wird von einer KI betrieben. Ihre Eingaben werden zur Beantwortung an einen externen KI-Dienst übermittelt und dort verarbeitet. Bitte geben Sie keine personenbezogenen oder sensiblen Daten (z.B. Namen, Adressen, Passwörter, Bankdaten) ein. Mit dem Klick auf "Akzeptieren" stimmen Sie der Verarbeitung Ihrer Eingaben zu.',
+        'consentPrivacyUrl' => '',
     ];
 
     private const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -147,6 +151,15 @@ class KiSettingsModule extends BackendModule
                 }
             }
 
+            // Consent / Datenschutz
+            $consentEnabled = (bool) Input::post('ki_consent_enabled');
+            $consentTitle = trim((string) Input::post('ki_consent_title')) ?: self::DEFAULTS['consentTitle'];
+            $consentText = trim((string) Input::post('ki_consent_text')) ?: self::DEFAULTS['consentText'];
+            $consentPrivacyUrl = trim((string) Input::post('ki_consent_privacy_url'));
+            if ($consentPrivacyUrl !== '' && !preg_match('#^(https?://|/)#', $consentPrivacyUrl)) {
+                $consentPrivacyUrl = '';
+            }
+
             // Crawl pages
             $selectedPages = Input::post('ki_crawl_pages');
             $crawlPageIds = is_array($selectedPages) ? array_map('intval', $selectedPages) : [];
@@ -167,6 +180,10 @@ class KiSettingsModule extends BackendModule
                 'hoursEnabled' => $hoursEnabled,
                 'offlineMessage' => $offlineMessage,
                 'hours' => $hours,
+                'consentEnabled' => $consentEnabled,
+                'consentTitle' => $consentTitle,
+                'consentText' => $consentText,
+                'consentPrivacyUrl' => $consentPrivacyUrl,
             ];
 
             try {
@@ -342,6 +359,10 @@ class KiSettingsModule extends BackendModule
         $this->Template->kiHoursEnabled = $settings['hoursEnabled'] ?? false;
         $this->Template->kiOfflineMessage = $settings['offlineMessage'] ?? self::DEFAULTS['offlineMessage'];
         $this->Template->kiHours = $settings['hours'] ?? self::DEFAULTS['hours'];
+        $this->Template->kiConsentEnabled = $settings['consentEnabled'] ?? true;
+        $this->Template->kiConsentTitle = $settings['consentTitle'] ?? self::DEFAULTS['consentTitle'];
+        $this->Template->kiConsentText = $settings['consentText'] ?? self::DEFAULTS['consentText'];
+        $this->Template->kiConsentPrivacyUrl = $settings['consentPrivacyUrl'] ?? '';
         $this->Template->kiDays = self::DAYS;
         $this->Template->kiDayLabels = [
             'mon' => 'Montag',
