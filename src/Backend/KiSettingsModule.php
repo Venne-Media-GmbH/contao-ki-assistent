@@ -89,15 +89,20 @@ class KiSettingsModule extends BackendModule
             // Enabled toggle
             $enabled = (bool) Input::post('ki_enabled');
 
-            // Design settings - color picker is the source of truth
-            $color = trim((string) Input::post('ki_color'));
-            // Normalize: lowercase, ensure leading #
+            // Design settings - color picker is the source of truth.
+            // Use postRaw + manual decode because Contao's Input::post strips/encodes
+            // the leading '#' which breaks hex color values.
+            $color = trim((string) Input::postRaw('ki_color'));
+            $color = html_entity_decode($color, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            // If # was stripped, prepend it
             if ($color !== '' && $color[0] !== '#') {
                 $color = '#' . $color;
             }
             $color = strtolower($color);
             if (!preg_match('/^#[0-9a-f]{6}$/', $color)) {
-                $color = self::DEFAULTS['color'];
+                // Keep current color instead of falling back to default,
+                // so users don't lose their color on validation issues
+                $color = $settings['color'] ?? self::DEFAULTS['color'];
             }
 
             $position = Input::post('ki_position');
