@@ -279,14 +279,12 @@ class KiWidgetInjectorListener
 .ca-ki-heading{display:block;margin:8px 0 3px;font-size:14.5px;font-weight:700}
 .ca-ki-li{display:block;padding-left:16px;text-indent:-12px;margin:4px 0;line-height:1.55}
 .ca-ki-hr{border:none;border-top:1px solid #e5e7eb;margin:10px 0}
-.ca-ki-src-badge{display:inline-block;background:__COLOR__15;color:__COLOR__;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;text-decoration:none;vertical-align:super;line-height:1;margin:0 1px;transition:background .15s}
-.ca-ki-src-badge:hover{background:__COLOR__30;text-decoration:none}
-.ca-ki-sources{margin-top:12px;padding:10px 12px;background:rgba(0,0,0,.03);border-radius:10px;font-size:12px;line-height:1.6}
-.ca-ki-sources-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-bottom:6px}
-.ca-ki-src-link{display:flex;align-items:baseline;gap:6px;color:#374151;text-decoration:none;padding:2px 0;transition:color .15s}
-.ca-ki-src-link:hover{color:__COLOR__;text-decoration:none}
-.ca-ki-src-num{color:__COLOR__;font-weight:700;font-size:10px;flex-shrink:0}
-.ca-ki-src-link:hover .ca-ki-src-num{opacity:.8}
+.ca-ki-sources{margin-top:12px;padding:10px 14px;background:linear-gradient(135deg,rgba(0,0,0,.02),rgba(0,0,0,.04));border-radius:12px;font-size:12px;line-height:1.5;border:1px solid rgba(0,0,0,.04)}
+.ca-ki-sources-title{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af;margin-bottom:8px}
+.ca-ki-src-link{display:flex;align-items:center;gap:8px;color:#4b5563;text-decoration:none;padding:5px 8px;margin:2px -8px;border-radius:8px;transition:all .15s}
+.ca-ki-src-link:hover{background:__COLOR__10;color:__COLOR__;text-decoration:none}
+.ca-ki-src-link span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ca-ki-src-link svg{color:__COLOR__}
 .ca-ki-tbl{display:table;width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
 .ca-ki-tbl-row{display:table-row}
 .ca-ki-tbl-head{font-weight:700}
@@ -481,7 +479,7 @@ function send(text){
           try{var d=JSON.parse(line.substring(6));
             if(d.type==='token'&&d.content){curTxt+=d.content;curBot.innerHTML=md(curTxt);msgs.scrollTop=msgs.scrollHeight}
             if(d.type==='start'&&d.session_token){st=d.session_token;localStorage.setItem(SK,st)}
-            if(d.type==='done'){if(d.session_token){st=d.session_token;localStorage.setItem(SK,st)}sending=false;sendBtn.disabled=false;if(d.sources&&d.sources.length&&curBot){var h=curBot.innerHTML;for(var si=0;si<d.sources.length;si++){var s=d.sources[si],n=si+1;var badge='\x3ca href="'+s.url+'" target="_blank" rel="noopener" title="'+s.title.replace(/"/g,'&quot;')+'" class="ca-ki-src-badge">'+n+'\x3c/a>';h=h.replace(new RegExp('\\['+n+'\\]','g'),badge)}curBot.innerHTML=h;var sb='\x3cdiv class="ca-ki-sources">\x3cdiv class="ca-ki-sources-title">Quellen\x3c/div>';for(var si=0;si<d.sources.length;si++){var s=d.sources[si];sb+='\x3ca href="'+s.url+'" target="_blank" rel="noopener" class="ca-ki-src-link">\x3cspan class="ca-ki-src-num">'+(si+1)+'\x3c/span>'+s.title+'\x3c/a>'}sb+='\x3c/div>';curBot.innerHTML+=sb;msgs.scrollTop=msgs.scrollHeight}}
+            if(d.type==='done'){if(d.session_token){st=d.session_token;localStorage.setItem(SK,st)}sending=false;sendBtn.disabled=false;if(d.sources&&d.sources.length&&curBot){var sb='\x3cdiv class="ca-ki-sources">\x3cdiv class="ca-ki-sources-title">Quellen\x3c/div>';for(var si=0;si<d.sources.length;si++){var s=d.sources[si];sb+='\x3ca href="'+s.url+'" target="_blank" rel="noopener" class="ca-ki-src-link">\x3csvg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:.5">\x3cpath stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>\x3c/svg>\x3cspan>'+s.title+'\x3c/span>\x3c/a>'}sb+='\x3c/div>';curBot.innerHTML+=sb;msgs.scrollTop=msgs.scrollHeight}}
             if(d.error==='limit_reached'){curBot.innerHTML='\x3cspan class="ca-ki-err">Das monatliche Limit wurde erreicht.\x3c/span>';sending=false;sendBtn.disabled=false}
           }catch(e){}});
         read()}).catch(function(){
