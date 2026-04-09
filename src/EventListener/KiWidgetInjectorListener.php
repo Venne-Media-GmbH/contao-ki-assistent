@@ -16,6 +16,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 #[AsEventListener(event: KernelEvents::RESPONSE, priority: -128)]
 class KiWidgetInjectorListener
 {
+    private const string VERSION = '2.1.0';
+
     private const string API_BASE = 'https://portal.venne-software.de/contao-agent/api/ki';
 
     private const array ICONS = [
@@ -302,6 +304,7 @@ class KiWidgetInjectorListener
 #ca-ki-footer{padding:8px 14px 10px;text-align:center;flex-shrink:0;background:#fff;border-top:1px solid #f3f4f6}
 #ca-ki-footer a{font-size:11px;color:#9ca3af;text-decoration:none;letter-spacing:.02em;font-weight:500}
 #ca-ki-footer a:hover{color:__COLOR__}
+.ca-ki-ver{font-size:10px;color:#d1d5db;margin-left:6px;font-weight:400}
 #ca-ki-consent{position:absolute;inset:0;top:74px;background:#fff;z-index:5;padding:24px 22px;display:none;flex-direction:column;overflow-y:auto;animation:ca-ki-fade .2s ease}
 #ca-ki-consent.show{display:flex}
 #ca-ki-consent .icon-wrap{width:56px;height:56px;border-radius:16px;background:__COLOR__15;display:flex;align-items:center;justify-content:center;margin-bottom:14px;align-self:flex-start}
@@ -344,7 +347,7 @@ class KiWidgetInjectorListener
     <textarea id="ca-ki-input" rows="1" placeholder="Nachricht eingeben..." maxlength="5000"></textarea>
     <button id="ca-ki-send" title="Senden" type="button" aria-label="Senden">&#10148;</button>
   </div>
-  <div id="ca-ki-footer"><a href="https://venne-media.de" target="_blank" rel="noopener">Powered by Venne Media</a></div>
+  <div id="ca-ki-footer"><a href="https://venne-media.de" target="_blank" rel="noopener">Powered by Venne Media</a><span class="ca-ki-ver">v__VERSION__</span></div>
 </div>
 <script>
 (function(){
@@ -496,8 +499,8 @@ input.addEventListener('input',function(){this.style.height='auto';this.style.he
 WIDGET;
 
         return str_replace(
-            ['__API_URL__', '__API_KEY__', '__COLOR__', '__POS_RIGHT__', '__POS_LEFT__', '__PANEL_RIGHT__', '__PANEL_LEFT__', '__BUBBLE_INNER__', '__HEADER_ICON__', '__TITLE__', '__SUBTITLE__', '__STATUS_CLASS__', '__WELCOME__', '__OFFLINE_MSG__', '__OFFLINE_FLAG__', '__LOGO_URL__', '__CUSTOM_CSS__', '__CONSENT_TITLE__', '__CONSENT_TEXT__', '__CONSENT_PRIVACY_LINK__', '__CONSENT_FLAG__'],
-            [$apiUrlJs, $apiKeyJs, $colorCss, $posRight, $posLeft, $panelRight, $panelLeft, $bubbleInner, $headerIconInner, $titleHtml, $subtitleHtml, $isOffline ? 'offline' : '', $welcomeJs, $offlineJs, $offlineFlag, addslashes($logoUrlHtml), $customCssClean, $consentTitleHtml, $consentTextHtml, $consentPrivacyLink, $consentFlag],
+            ['__API_URL__', '__API_KEY__', '__COLOR__', '__POS_RIGHT__', '__POS_LEFT__', '__PANEL_RIGHT__', '__PANEL_LEFT__', '__BUBBLE_INNER__', '__HEADER_ICON__', '__TITLE__', '__SUBTITLE__', '__STATUS_CLASS__', '__WELCOME__', '__OFFLINE_MSG__', '__OFFLINE_FLAG__', '__LOGO_URL__', '__CUSTOM_CSS__', '__CONSENT_TITLE__', '__CONSENT_TEXT__', '__CONSENT_PRIVACY_LINK__', '__CONSENT_FLAG__', '__VERSION__'],
+            [$apiUrlJs, $apiKeyJs, $colorCss, $posRight, $posLeft, $panelRight, $panelLeft, $bubbleInner, $headerIconInner, $titleHtml, $subtitleHtml, $isOffline ? 'offline' : '', $welcomeJs, $offlineJs, $offlineFlag, addslashes($logoUrlHtml), $customCssClean, $consentTitleHtml, $consentTextHtml, $consentPrivacyLink, $consentFlag, self::VERSION],
             $template,
         );
     }
