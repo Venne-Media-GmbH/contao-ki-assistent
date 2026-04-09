@@ -16,7 +16,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 #[AsEventListener(event: KernelEvents::RESPONSE, priority: -128)]
 class KiWidgetInjectorListener
 {
-    private const string VERSION = '2.1.0';
+    private const string VERSION = '2.2.0';
 
     private const string API_BASE = 'https://portal.venne-software.de/contao-agent/api/ki';
 
@@ -486,7 +486,7 @@ function send(text){
           try{var d=JSON.parse(line.substring(6));
             if(d.type==='token'&&d.content){curTxt+=d.content;curBot.innerHTML=md(curTxt);msgs.scrollTop=msgs.scrollHeight}
             if(d.type==='start'&&d.session_token){st=d.session_token;localStorage.setItem(SK,st)}
-            if(d.type==='done'){if(d.session_token){st=d.session_token;localStorage.setItem(SK,st)}sending=false;sendBtn.disabled=false;if(d.sources&&d.sources.length&&curBot){var h=curBot.innerHTML;var cited=[];for(var si=0;si<d.sources.length;si++){var s=d.sources[si];var num=si+1;var re=new RegExp('\\['+num+'\\]','g');if(re.test(h)){cited.push(si);h=h.replace(re,'\x3ca href="'+s.url+'" target="_blank" rel="noopener" style="display:inline-block;background:__COLOR__15;color:__COLOR__;font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;text-decoration:none;vertical-align:super;line-height:1;margin:0 1px" title="'+s.title.replace(/"/g,'&quot;')+'">'+num+'\x3c/a>')}}curBot.innerHTML=h;if(cited.length>0){var sb='\x3cdiv class="ca-ki-sources">\x3cdiv class="ca-ki-sources-title">Quellen\x3c/div>';for(var ci=0;ci<cited.length;ci++){var s=d.sources[cited[ci]];sb+='\x3ca href="'+s.url+'" target="_blank" rel="noopener" class="ca-ki-src-link">\x3csvg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:.5">\x3cpath stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>\x3c/svg>\x3cspan>['+(cited[ci]+1)+'] '+s.title+'\x3c/span>\x3c/a>'}sb+='\x3c/div>';curBot.innerHTML+=sb}msgs.scrollTop=msgs.scrollHeight}}
+            if(d.type==='done'){if(d.session_token){st=d.session_token;localStorage.setItem(SK,st)}sending=false;sendBtn.disabled=false;if(curBot){if(d.final_content){curBot.innerHTML=md(d.final_content)}if(d.sources&&d.sources.length){var sb='\x3cdiv class="ca-ki-sources">\x3cdiv class="ca-ki-sources-title">Quellen\x3c/div>';for(var si=0;si<d.sources.length;si++){var s=d.sources[si];sb+='\x3ca href="'+s.url+'" target="_blank" rel="noopener" class="ca-ki-src-link">\x3csvg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:.5">\x3cpath stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>\x3c/svg>\x3cspan>'+s.title+'\x3c/span>\x3c/a>'}sb+='\x3c/div>';curBot.innerHTML+=sb;msgs.scrollTop=msgs.scrollHeight}}}
             if(d.error==='limit_reached'){curBot.innerHTML='\x3cspan class="ca-ki-err">Das monatliche Limit wurde erreicht.\x3c/span>';sending=false;sendBtn.disabled=false}
           }catch(e){}});
         read()}).catch(function(){
