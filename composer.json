@@ -4,7 +4,7 @@
     "type": "contao-bundle",
     "license": "proprietary",
     "require": {
-        "php": ">=8.2",
+        "php": ">=8.3",
         "contao/core-bundle": "^5.3"
     },
     "autoload": {
